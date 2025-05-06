@@ -1,3 +1,5 @@
+using SwaggerThemes;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
@@ -6,10 +8,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.MapOpenApi();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("v1/swagger.json", "My API V1");
-});
+app.UseSwaggerUI(Theme.Monokai);
 app.MapSwagger();
 
 app.MapGet("/", () => "Hello World!");
