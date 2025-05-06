@@ -27,3 +27,11 @@
 /home/cris/p/obligatorio_bd_2/code/backend/obj/Debug/net9.0/backend.pdb
 /home/cris/p/obligatorio_bd_2/code/backend/obj/Debug/net9.0/backend.genruntimeconfig.cache
 /home/cris/p/obligatorio_bd_2/code/backend/obj/Debug/net9.0/ref/backend.dll
+/home/cris/p/obligatorio_bd_2/code/backend/bin/Debug/net9.0/Microsoft.AspNetCore.OpenApi.dll
+/home/cris/p/obligatorio_bd_2/code/backend/bin/Debug/net9.0/Microsoft.OpenApi.dll
+/home/cris/p/obligatorio_bd_2/code/backend/bin/Debug/net9.0/Swashbuckle.AspNetCore.Swagger.dll
+/home/cris/p/obligatorio_bd_2/code/backend/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+/home/cris/p/obligatorio_bd_2/code/backend/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+/home/cris/p/obligatorio_bd_2/code/backend/obj/Debug/net9.0/backend.csproj.AssemblyReference.cache
+/home/cris/p/obligatorio_bd_2/code/backend/obj/Debug/net9.0/backend.MvcApplicationPartsAssemblyInfo.cs
+/home/cris/p/obligatorio_bd_2/code/backend/obj/Debug/net9.0/backend.csproj.Up2Date
