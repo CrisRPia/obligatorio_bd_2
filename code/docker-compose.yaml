@@ -1,0 +1,15 @@
+name: Votes
+services:
+    votes_backend:
+        image: votes_backend
+        container_name: votes_backend
+        build:
+            context: ./backend
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./backend/:/voting_backend/
+        environment:
+            - PING=pong!
+        # depends_on:
+        #   - db
