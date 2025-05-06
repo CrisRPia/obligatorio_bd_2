@@ -1,3 +1,4 @@
+using backend.src.Endpoints;
 using SwaggerThemes;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,9 +12,6 @@ app.MapOpenApi();
 app.UseSwaggerUI(Theme.Monokai);
 app.MapSwagger();
 
-app.MapGet("/", () => "Hello World!");
-app.MapGet("/test/{sometext}", (string sometext) => {
-    return sometext;
-});
+app.MapGroup("/group").MapTestEndpoints();
 
 app.Run();

@@ -1,4 +1,4 @@
-namespace backend;
+namespace backend.src;
 
 public static class Swagger {
     public static void InitSwagger(IServiceCollection services) {
