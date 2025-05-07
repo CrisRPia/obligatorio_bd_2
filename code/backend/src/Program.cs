@@ -3,15 +3,16 @@ using SwaggerThemes;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.MapOpenApi();
+app.UseSwagger();
 app.UseSwaggerUI(Theme.Monokai);
-app.MapSwagger();
+app.MapControllers();
 
-app.MapGroup("/group").MapTestEndpoints();
+Root.MapPing(app.MapGroup("/Minimal"));
 
 app.Run();
