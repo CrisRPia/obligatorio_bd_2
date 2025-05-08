@@ -10,7 +10,7 @@ namespace backend.src.Controllers;
 public class CitizenController : Controller
 {
     [HttpPost]
-    [Route("{citizenId}/Vote/{circuitId}/")]
+    [Route("{citizenId}/vote/{circuitId}/")]
     public async Task<DefaultOk> Vote(
         [UruguayanIdValidator] int citizenId,
         string circuitId,

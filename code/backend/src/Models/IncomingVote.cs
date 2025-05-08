@@ -28,6 +28,6 @@ public record IncomingVote
     [Description($"Specify if vote type is {nameof(VoteType.List)}.")]
     public int? ListId { get; init; }
 
-    [Description($"Specify if vote type is {nameof(VoteType.Boolean)}")]
+    [Description($"Specify if vote type is {nameof(VoteType.Boolean)}.")]
     public bool? IsYes { get; init; }
 }
