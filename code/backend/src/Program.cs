@@ -1,18 +1,25 @@
-using backend.src.Endpoints;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using SwaggerThemes;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
+// TODO: ADD JWT SUPPORT (BY ROLE)
+builder
+    .Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()
+        );
+    });
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI(Theme.Monokai);
 app.MapControllers();
-
-Root.MapPing(app.MapGroup("/Minimal"));
 
 app.Run();
