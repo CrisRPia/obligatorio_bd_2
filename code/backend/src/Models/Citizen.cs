@@ -1,14 +1,14 @@
 using System.ComponentModel.DataAnnotations;
-using backend.src.Validators;
+using backend.src.Attributes;
 
 namespace backend.src.Models;
 
 public record BaseCitizen
 {
-    [Required, CredencialCivicaValidator]
+    [Required, CredencialCivicaAttribute]
     public required string CredencialCivica { get; init; }
 
-    [Required, UruguayanIdValidator]
+    [Required, UruguayanIdAttribute]
     public required string UruguayanId { get; init; }
 }
 

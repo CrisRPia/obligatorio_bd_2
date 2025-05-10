@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using backend.src.Attributes;
 
 namespace backend.src.Models;
 
@@ -34,27 +35,41 @@ public enum ElectionType
     Runoff,
 }
 
-public record Election {
-    [Required] public required ElectionType Type { get; init; }
-    [Required] public required DateOnly Date { get; init; }
+public record Election
+{
+    [Required]
+    public required ElectionType Type { get; init; }
+
+    [Required]
+    public required DateOnly Date { get; init; }
+
+    [Required]
+    public required Guid ElectionId { get; init; }
     public ElectionResult? Result { get; init; }
 }
 
 public record ElectionResult
 {
-    [Required] public required ElectionType Type { get; init; }
+    [Required]
+    public required ElectionType Type { get; init; }
 
-    public List<VoteResult<BooleanVote>>? BooleanResult { get; init; }
-    public List<VoteResult<ElectionList>>? ListBasedResult { get; init; }
+    public IEnumerable<VoteResult<BooleanVote>>? BooleanResult { get; init; }
+    public IEnumerable<
+        VoteResult<CandidateList>
+    >? ListBasedResult { get; init; }
 
     [Required]
     public int TotalVotes { get; init; }
 }
 
-public record BooleanVote {
-    [Required] public required bool Yes { get; init; }
-    [Required] public required string ColorName { get; init; }
-    [Required] public required string ColorHex { get; init; }
+public record BooleanVote
+{
+    [Required]
+    public required bool Yes { get; init; }
+
+    [Required]
+    [MinLength(3), MaxLength(3)]
+    public required byte[] ColorHex { get; init; }
 }
 
 public record VoteResult<T>

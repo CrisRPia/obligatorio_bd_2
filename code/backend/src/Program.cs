@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 // TODO: ADD JWT SUPPORT (BY ROLE)
 builder
     .Services.AddControllers()
@@ -19,7 +20,10 @@ builder
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(ModernStyle.Dark, options => {
+app.UseSwaggerUI(
+    ModernStyle.Dark,
+    options =>
+    {
         options.EnableAllAdvancedOptions();
         options.DocumentTitle = "Voting backend";
         options.EnablePersistAuthorization();
@@ -27,7 +31,8 @@ app.UseSwaggerUI(ModernStyle.Dark, options => {
         options.DefaultModelExpandDepth(10);
         options.DefaultModelsExpandDepth(10);
         options.EnableSwaggerDocumentUrlsEndpoint();
-});
+    }
+);
 
 app.MapControllers();
 

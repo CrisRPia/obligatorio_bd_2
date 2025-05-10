@@ -1,13 +1,13 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using backend.src.Validators;
+using backend.src.Attributes;
 
 namespace backend.src.Models;
 
-public record IncomingVotes
+public record IncomingVotes : ListModel<IncomingVote>
 {
-    [Required] public required List<IncomingVote> Votes { get; init; }
-    [Required, CredencialCivicaValidator] public required string VoterCredencialCivica;
+    [Required, CredencialCivicaAttribute]
+    public required string VoterCredencialCivica;
 }
 
 public enum VoteType

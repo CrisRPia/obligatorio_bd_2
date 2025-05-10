@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace backend.src.Validators;
+namespace backend.src.Attributes;
 
 [AttributeUsage(
     AttributeTargets.Property
@@ -8,7 +8,7 @@ namespace backend.src.Validators;
         | AttributeTargets.Parameter,
     AllowMultiple = false
 )]
-class UruguayanIdValidator : ValidationAttribute
+class UruguayanIdAttribute : ValidationAttribute
 {
     private static readonly int[] Multipliers = [2, 9, 8, 7, 6, 3, 4];
     private const string DefaultErrorMessage =
@@ -24,14 +24,11 @@ class UruguayanIdValidator : ValidationAttribute
     )
     {
         if (value == null)
-        {
             return ValidationResult.Success!;
-        }
 
-        if (value is not int)
+        if (value is not int checkedValue)
             return BadResult(validationContext);
 
-        var checkedValue = (int)value;
         var idDigits = checkedValue
             .ToString()
             .ToCharArray()
@@ -43,11 +40,9 @@ class UruguayanIdValidator : ValidationAttribute
 
         var verifierDigit = Multipliers.Zip(idDigits, (a, b) => a * b).Sum();
 
-        if (verifierDigit == idDigits.Last())
-        {
-            return ValidationResult.Success!;
-        }
+        if (verifierDigit != idDigits.Last())
+            return BadResult(validationContext);
 
-        return BadResult(validationContext);
+        return ValidationResult.Success!;
     }
 }
