@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using backend.src.Models;
-using Microsoft.AspNetCore.Authorization;
+using backend.src.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.src.Controllers;
@@ -21,7 +21,7 @@ public class CircuitController : Controller
     }
 
     [HttpPut]
-    [Authorize("president")]
+    [SafeAuthorize(roles: [Role.Admin])]
     [Route("{circuitId}/authorize_vote/{voteId}")]
     public async Task<DefaultOk> AuthorizeVote(
         Guid departmentId,

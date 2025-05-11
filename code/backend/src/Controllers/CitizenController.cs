@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using backend.src.Attributes;
 using backend.src.Models;
+using backend.src.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.src.Controllers;
@@ -10,9 +10,10 @@ namespace backend.src.Controllers;
 public class CitizenController : Controller
 {
     [HttpPost]
+    [SafeAuthorize(roles: [Role.Voter])]
     [Route("{citizenId}/vote/{circuitId}/")]
     public async Task<DefaultOk> Vote(
-        [UruguayanIdAttribute] int citizenId,
+        [UruguayanId] int citizenId,
         string circuitId,
         IncomingVotes votes
     )
