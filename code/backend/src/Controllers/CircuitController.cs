@@ -21,7 +21,7 @@ public class CircuitController : Controller
     }
 
     [HttpPut]
-    [SafeAuthorize(roles: [Role.Admin])]
+    [SafeAuthorize(roles: [Role.Admin, Role.BoardPresident])]
     [Route("{circuitId}/authorize_vote/{voteId}")]
     public async Task<DefaultOk> AuthorizeVote(
         Guid departmentId,

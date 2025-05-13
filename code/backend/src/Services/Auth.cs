@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Extensions;
 
@@ -20,5 +21,8 @@ public class SafeAuthorizeAttribute : AuthorizeAttribute
     }
 
     public static string RolesToString(IEnumerable<Role> roles) =>
-        string.Join(",", roles.Select(r => r.GetDisplayName()));
+        string.Join(
+            ",",
+            roles.Select(r => r.GetDisplayName()).ToImmutableSortedSet()
+        );
 }

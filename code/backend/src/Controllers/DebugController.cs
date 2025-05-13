@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using backend.src.Attributes;
 using backend.src.Models;
 using backend.src.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.src.Controllers;
@@ -9,10 +11,8 @@ namespace backend.src.Controllers;
 [ApiController]
 [Debug]
 [Route("debug/")]
-public class DebugController(IConfiguration configuration) : Controller
+public class DebugController(IConfiguration Configuration) : Controller
 {
-    private IConfiguration Configuration => configuration;
-
     [HttpPost]
     [Route("Fake")]
     public async Task<StateSnapshot> Fake(FakeInput input)
@@ -22,17 +22,19 @@ public class DebugController(IConfiguration configuration) : Controller
 
     [HttpGet]
     [Route("JWT")]
-    public async Task<IEnumerable<Role>> GetTokenInfo()
+    [Authorize]
+    public IEnumerable<string> GetTokenInfo()
     {
-        // TODO
-        throw new NotImplementedException();
+        var user = HttpContext.User;
+
+        return user
+            .Claims.Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value);
     }
 
     [HttpPost]
     [Route("JWT")]
-    public async Task<AuthResponse<IEnumerable<Role>>> FakeLogin(
-        IEnumerable<Role> roles
-    )
+    public AuthResponse<IEnumerable<Role>> FakeLogin(IEnumerable<Role> roles)
     {
         var jwt = new JwtService(Configuration);
         return new AuthResponse<IEnumerable<Role>>()
@@ -42,8 +44,6 @@ public class DebugController(IConfiguration configuration) : Controller
         };
     }
 }
-
-public struct Unit { }
 
 public record FakeInput
 {
