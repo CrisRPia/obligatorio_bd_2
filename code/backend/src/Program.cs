@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using AspNetCore.Swagger.Themes;
-using backend.src.Queries.Codegen;
 using backend.src.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -8,24 +7,6 @@ using Microsoft.OpenApi.Models;
 using SwaggerThemes;
 
 var builder = WebApplication.CreateBuilder(args);
-
-async void test()
-{
-    var withDapper = new QueriesSqlDapper("");
-    var withoutDapper = new QueriesSql("");
-
-    var authorDapper = await withDapper.GetAuthor(
-        new QueriesSqlDapper.GetAuthorArgs { Id = 32 }
-    );
-
-    var authorNoDapper = await withoutDapper.GetAuthor(
-        new QueriesSql.GetAuthorArgs { Id = 32 }
-    );
-
-    var multiple = await withDapper.ListAuthors();
-
-    var a = authorNoDapper?.Bio;
-}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
