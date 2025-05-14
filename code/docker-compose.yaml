@@ -3,6 +3,8 @@ services:
     votes_backend:
         image: votes_backend
         container_name: votes_backend
+        depends_on:
+          - db
         build:
             context: ./backend
         ports:
@@ -11,5 +13,18 @@ services:
             - ./backend/:/voting_backend/
         environment:
             - PING=pong!
-        # depends_on:
-        #   - db
+    db:
+      image: mysql
+      build:
+        context: ./db
+      ports:
+        - 3306:3306
+      volumes:
+        - mysql_data:/var/lib/mysql
+        - ./db/init:/docker-entrypoint-initdb.d
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: PASSWORD
+        MYSQL_DATABASE: votes_db
+volumes:
+  mysql_data:
