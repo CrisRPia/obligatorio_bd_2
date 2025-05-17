@@ -31,7 +31,7 @@ export const ElectionState = {
     Closed: "Closed",
 };
 export const getPostAuthPollingStationLoginUrl = () => {
-    return `/auth/polling_station/login`;
+    return `http://localhost:8080/auth/polling_station/login`;
 };
 export const postAuthPollingStationLogin = async (baseCitizen, options) => {
     const res = await fetch(getPostAuthPollingStationLoginUrl(), {
@@ -44,7 +44,7 @@ export const postAuthPollingStationLogin = async (baseCitizen, options) => {
     return { status: res.status, data };
 };
 export const getPostAuthPollingStationRegisterUrl = () => {
-    return `/auth/polling_station/register`;
+    return `http://localhost:8080/auth/polling_station/register`;
 };
 export const postAuthPollingStationRegister = async (pollingStationMember, options) => {
     const res = await fetch(getPostAuthPollingStationRegisterUrl(), {
@@ -57,7 +57,7 @@ export const postAuthPollingStationRegister = async (pollingStationMember, optio
     return { status: res.status, data };
 };
 export const getPostAuthPoliceOfficerRegisterUrl = () => {
-    return `/auth/police_officer/register`;
+    return `http://localhost:8080/auth/police_officer/register`;
 };
 export const postAuthPoliceOfficerRegister = async (pollingStationMember, options) => {
     const res = await fetch(getPostAuthPoliceOfficerRegisterUrl(), {
@@ -70,7 +70,7 @@ export const postAuthPoliceOfficerRegister = async (pollingStationMember, option
     return { status: res.status, data };
 };
 export const getPostAuthPoliceOfficerLoginUrl = () => {
-    return `/auth/police_officer/login`;
+    return `http://localhost:8080/auth/police_officer/login`;
 };
 export const postAuthPoliceOfficerLogin = async (pollingStationMember, options) => {
     const res = await fetch(getPostAuthPoliceOfficerLoginUrl(), {
@@ -83,7 +83,7 @@ export const postAuthPoliceOfficerLogin = async (pollingStationMember, options) 
     return { status: res.status, data };
 };
 export const getGetDepartmentsDepartmentIdCircuitsCircuitIdResultsElectionIdUrl = (departmentId, circuitId, electionId) => {
-    return `/departments/${departmentId}/circuits/${circuitId}/results/${electionId}`;
+    return `http://localhost:8080/departments/${departmentId}/circuits/${circuitId}/results/${electionId}`;
 };
 export const getDepartmentsDepartmentIdCircuitsCircuitIdResultsElectionId = async (departmentId, circuitId, electionId, options) => {
     const res = await fetch(getGetDepartmentsDepartmentIdCircuitsCircuitIdResultsElectionIdUrl(departmentId, circuitId, electionId), {
@@ -101,8 +101,8 @@ export const getPutDepartmentsDepartmentIdCircuitsCircuitIdAuthorizeVoteVoteIdUr
         }
     });
     return normalizedParams.size
-        ? `/departments/${departmentId}/circuits/${circuitId}/authorize_vote/${voteId}?${normalizedParams.toString()}`
-        : `/departments/${departmentId}/circuits/${circuitId}/authorize_vote/${voteId}`;
+        ? `http://localhost:8080/departments/${departmentId}/circuits/${circuitId}/authorize_vote/${voteId}?${normalizedParams.toString()}`
+        : `http://localhost:8080/departments/${departmentId}/circuits/${circuitId}/authorize_vote/${voteId}`;
 };
 export const putDepartmentsDepartmentIdCircuitsCircuitIdAuthorizeVoteVoteId = async (departmentId, circuitId, voteId, params, options) => {
     const res = await fetch(getPutDepartmentsDepartmentIdCircuitsCircuitIdAuthorizeVoteVoteIdUrl(departmentId, circuitId, voteId, params), {
@@ -113,7 +113,7 @@ export const putDepartmentsDepartmentIdCircuitsCircuitIdAuthorizeVoteVoteId = as
     return { status: res.status, data };
 };
 export const getGetDepartmentsDepartmentIdCircuitsUrl = (departmentId) => {
-    return `/departments/${departmentId}/circuits`;
+    return `http://localhost:8080/departments/${departmentId}/circuits`;
 };
 export const getDepartmentsDepartmentIdCircuits = async (departmentId, options) => {
     const res = await fetch(getGetDepartmentsDepartmentIdCircuitsUrl(departmentId), {
@@ -124,7 +124,7 @@ export const getDepartmentsDepartmentIdCircuits = async (departmentId, options) 
     return { status: res.status, data };
 };
 export const getPostCitizenCitizenIdVoteCircuitIdUrl = (citizenId, circuitId) => {
-    return `/citizen/${citizenId}/vote/${circuitId}`;
+    return `http://localhost:8080/citizen/${citizenId}/vote/${circuitId}`;
 };
 export const postCitizenCitizenIdVoteCircuitId = async (citizenId, circuitId, incomingVotes, options) => {
     const res = await fetch(getPostCitizenCitizenIdVoteCircuitIdUrl(citizenId, circuitId), {
@@ -137,7 +137,7 @@ export const postCitizenCitizenIdVoteCircuitId = async (citizenId, circuitId, in
     return { status: res.status, data };
 };
 export const getPostDebugFakeUrl = () => {
-    return `/debug/Fake`;
+    return `http://localhost:8080/debug/Fake`;
 };
 export const postDebugFake = async (fakeInput, options) => {
     const res = await fetch(getPostDebugFakeUrl(), {
@@ -150,7 +150,7 @@ export const postDebugFake = async (fakeInput, options) => {
     return { status: res.status, data };
 };
 export const getGetDebugJWTUrl = () => {
-    return `/debug/JWT`;
+    return `http://localhost:8080/debug/JWT`;
 };
 export const getDebugJWT = async (options) => {
     const res = await fetch(getGetDebugJWTUrl(), {
@@ -161,7 +161,7 @@ export const getDebugJWT = async (options) => {
     return { status: res.status, data };
 };
 export const getPostDebugJWTUrl = () => {
-    return `/debug/JWT`;
+    return `http://localhost:8080/debug/JWT`;
 };
 export const postDebugJWT = async (role, options) => {
     const res = await fetch(getPostDebugJWTUrl(), {
@@ -174,7 +174,7 @@ export const postDebugJWT = async (role, options) => {
     return { status: res.status, data };
 };
 export const getGetDebugTestAuthorsUrl = () => {
-    return `/debug/TestAuthors`;
+    return `http://localhost:8080/debug/TestAuthors`;
 };
 export const getDebugTestAuthors = async (options) => {
     const res = await fetch(getGetDebugTestAuthorsUrl(), {
@@ -185,7 +185,7 @@ export const getDebugTestAuthors = async (options) => {
     return { status: res.status, data };
 };
 export const getPostDebugTestAuthorsUrl = () => {
-    return `/debug/TestAuthors`;
+    return `http://localhost:8080/debug/TestAuthors`;
 };
 export const postDebugTestAuthors = async (createAuthorArgs, options) => {
     const res = await fetch(getPostDebugTestAuthorsUrl(), {
@@ -198,7 +198,7 @@ export const postDebugTestAuthors = async (createAuthorArgs, options) => {
     return { status: res.status, data };
 };
 export const getGetDepartmentsUrl = () => {
-    return `/departments`;
+    return `http://localhost:8080/departments`;
 };
 export const getDepartments = async (options) => {
     const res = await fetch(getGetDepartmentsUrl(), {
@@ -216,8 +216,8 @@ export const getGetElectionsUrl = (params) => {
         }
     });
     return normalizedParams.size
-        ? `/elections?${normalizedParams.toString()}`
-        : `/elections`;
+        ? `http://localhost:8080/elections?${normalizedParams.toString()}`
+        : `http://localhost:8080/elections`;
 };
 export const getElections = async (params, options) => {
     const res = await fetch(getGetElectionsUrl(params), {
@@ -228,7 +228,7 @@ export const getElections = async (params, options) => {
     return { status: res.status, data };
 };
 export const getPostElectionsUrl = () => {
-    return `/elections`;
+    return `http://localhost:8080/elections`;
 };
 export const postElections = async (election, options) => {
     const res = await fetch(getPostElectionsUrl(), {
@@ -241,7 +241,7 @@ export const postElections = async (election, options) => {
     return { status: res.status, data };
 };
 export const getGetElectionsElectionIdUrl = (electionId) => {
-    return `/elections/${electionId}`;
+    return `http://localhost:8080/elections/${electionId}`;
 };
 export const getElectionsElectionId = async (electionId, options) => {
     const res = await fetch(getGetElectionsElectionIdUrl(electionId), {
