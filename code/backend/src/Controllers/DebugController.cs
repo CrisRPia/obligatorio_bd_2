@@ -1,18 +1,21 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using backend.src.Attributes;
 using backend.src.Models;
+using backend.src.Queries;
+using backend.src.Queries.Codegen;
 using backend.src.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace backend.src.Controllers;
 
 [ApiController]
 [Debug]
 [Route("debug/")]
-public class DebugController(IConfiguration configuration) : Controller
+public class DebugController(IConfiguration Configuration) : Controller
 {
-    private IConfiguration Configuration => configuration;
-
     [HttpPost]
     [Route("Fake")]
     public async Task<StateSnapshot> Fake(FakeInput input)
@@ -22,17 +25,19 @@ public class DebugController(IConfiguration configuration) : Controller
 
     [HttpGet]
     [Route("JWT")]
-    public async Task<IEnumerable<Role>> GetTokenInfo()
+    [Authorize]
+    public IEnumerable<string> GetTokenInfo()
     {
-        // TODO
-        throw new NotImplementedException();
+        var user = HttpContext.User;
+
+        return user
+            .Claims.Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value);
     }
 
     [HttpPost]
     [Route("JWT")]
-    public async Task<AuthResponse<IEnumerable<Role>>> FakeLogin(
-        IEnumerable<Role> roles
-    )
+    public AuthResponse<IEnumerable<Role>> FakeLogin(IEnumerable<Role> roles)
     {
         var jwt = new JwtService(Configuration);
         return new AuthResponse<IEnumerable<Role>>()
@@ -41,9 +46,19 @@ public class DebugController(IConfiguration configuration) : Controller
             Content = roles,
         };
     }
-}
 
-public struct Unit { }
+    [HttpGet]
+    [Route("TestAuthors")]
+    public async Task<IEnumerable<QueriesSql.ListAuthorsRow>> Test() {
+        return await DB.Queries.ListAuthors();
+    }
+
+    [HttpPost]
+    [Route("TestAuthors")]
+    public async Task<long> Test(QueriesSql.CreateAuthorArgs author) {
+        return await DB.Queries.CreateAuthor(author);
+    }
+}
 
 public record FakeInput
 {

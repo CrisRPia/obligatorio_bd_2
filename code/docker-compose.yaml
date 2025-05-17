@@ -12,7 +12,11 @@ services:
         volumes:
             - ./backend/:/voting_backend/
         environment:
-            - PING=pong!
+          DB_HOST: ${DB_HOST}
+          DB_PORT: ${DB_PORT}
+          DB_NAME: ${DB_NAME}
+          DB_USER: ${DB_USER}
+          DB_PASSWORD: ${DB_PASSWORD}
     db:
       image: mysql
       build:
@@ -24,7 +28,9 @@ services:
         - ./db/init:/docker-entrypoint-initdb.d
       restart: always
       environment:
-        MYSQL_ROOT_PASSWORD: PASSWORD
-        MYSQL_DATABASE: votes_db
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        MYSQL_DATABASE: ${DB_NAME}
+        MYSQL_USER: ${DB_USER}
+        MYSQL_PASSWORD: ${DB_PASSWORD}
 volumes:
   mysql_data:
