@@ -1,0 +1,13 @@
+{
+    "name": "frontend_codegen",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {},
+    "keywords": [],
+    "author": "CR",
+    "license": "ISC",
+    "dependencies": {
+        "orval": "^7.9.0"
+    }
+}
