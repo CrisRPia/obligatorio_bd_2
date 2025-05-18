@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS department (
 CREATE TABLE IF NOT EXISTS locality (
     locality_id   SERIAL PRIMARY KEY,
     name          TEXT                           NOT NULL,
-    type          ENUM ('City', 'Town', 'Other') NOT NULL,
+    type          ENUM ('city', 'town', 'other') NOT NULL,
     department_id BIGINT UNSIGNED                NOT NULL REFERENCES department (department_id)
 );
 
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS citizen_assigned_int_polling_district_election (
 
 CREATE TABLE IF NOT EXISTS vote (
     vote_id SERIAL PRIMARY KEY,
-    state   ENUM ('Valid', 'OutOfDistrict', 'ApprovedOutOfDistrict')
+    state   ENUM ('valid', 'out_of_district', 'approved_out_of_district')
 );
 
 CREATE TABLE IF NOT EXISTS ballot (
@@ -154,8 +154,8 @@ CREATE TABLE IF NOT EXISTS list_ballot_has_candidate (
     list_ballot_id BIGINT UNSIGNED REFERENCES list_ballot (list_ballot_id),
     candidate_id   CHAR(36) REFERENCES candidate (candidate_id),
     -- Starts at 0
-    index_in_list  BIGINT UNSIGNED                                                                        NOT NULL,
-    org            ENUM ('Deputy', 'Senator', 'DepartmentalBoard', 'MunicipalCouncilor', 'MainCandidate') NOT NULL,
+    index_in_list  BIGINT UNSIGNED                                                                           NOT NULL,
+    org            ENUM ('deputy', 'senator', 'departmental_board', 'municipal_councilor', 'main_candidate') NOT NULL,
     PRIMARY KEY (list_ballot_id, candidate_id)
 );
 
@@ -168,9 +168,9 @@ CREATE TABLE IF NOT EXISTS party (
 CREATE TABLE IF NOT EXISTS party_has_citizen (
     list_ballot_id BIGINT UNSIGNED REFERENCES list_ballot (list_ballot_id),
     party_id       BIGINT UNSIGNED REFERENCES party (party_id),
-    role           ENUM ('President', 'VicePresident') NOT NULL,
-    admission_date DATE                                NOT NULL,
-    exit_date      DATE                                NULL,
+    role           ENUM ('president', 'vice_president') NOT NULL,
+    admission_date DATE                                 NOT NULL,
+    exit_date      DATE                                 NULL,
     UNIQUE (party_id, role),
     PRIMARY KEY (list_ballot_id, party_id, admission_date)
 );

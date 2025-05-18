@@ -49,13 +49,15 @@ public class DebugController(IConfiguration Configuration) : Controller
 
     [HttpGet]
     [Route("TestAuthors")]
-    public async Task<IEnumerable<QueriesSql.ListAuthorsRow>> Test() {
+    public async Task<IEnumerable<QueriesSql.ListAuthorsRow>> Test()
+    {
         return await DB.Queries.ListAuthors();
     }
 
     [HttpPost]
     [Route("TestAuthors")]
-    public async Task<long> Test(QueriesSql.CreateAuthorArgs author) {
+    public async Task<long> Test(QueriesSql.CreateAuthorArgs author)
+    {
         return await DB.Queries.CreateAuthor(author);
     }
 }

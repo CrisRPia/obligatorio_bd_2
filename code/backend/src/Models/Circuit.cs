@@ -31,10 +31,11 @@ public record Zone
     public required Locality Locality { get; init; }
 }
 
-public enum LocalityType {
+public enum LocalityType
+{
     City,
     Town,
-    Other
+    Other,
 }
 
 public record Locality
