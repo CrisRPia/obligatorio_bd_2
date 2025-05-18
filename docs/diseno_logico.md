@@ -20,7 +20,7 @@ ciudadano(
 )
 ```
 ```
-policía(id_ciudadano PK)
+policía(id_ciudadano PK FK)
 ```
 
 Decisión de Diseño: Creamos esta tabla para que sea más
@@ -30,32 +30,32 @@ información de los policías o añadir nuevas relaciones.
 ```
 comisaria(
     id_comisaría PK,
+    id_zona FK,
     nombre,
     dirección
 )
 ```
 ```
 policía_asignado_comisaría(
-    id_policia PK,
-    ID_comisaría PK,
+    id_policia PK FK,
+    id_comisaría PK FK,
     fecha_asignado PK,
     fecha_baja
 )
 ```
-```
-policía_asignado_establecimiento(
-    id_policia PK FK,
-    id_establecimiento PK FK,
-    fecha_asignado PK FK
-)
-```
-
 ```
 establecimiento(
     id_establecimiento PK,
     nombre,
     dirección,
     id_zona FK
+)
+```
+```
+policía_asignado_establecimiento(
+id_policia PK FK,
+id_establecimiento PK FK,
+fecha_asignado PK FK
 )
 ```
 ```
@@ -160,7 +160,7 @@ voto_tiene_papeleta(
 ```
 booleana(
     id_papeleta PK FK,
-    vota_si
+    valor
 )
 ```
 ```
