@@ -44,7 +44,7 @@ public record Election
     public required DateOnly Date { get; init; }
 
     [Required]
-    public required Guid ElectionId { get; init; }
+    public required string ElectionId { get; init; }
     public ElectionResult? Result { get; init; }
 }
 
@@ -69,7 +69,7 @@ public record BooleanVote
 
     [Required]
     [MinLength(3), MaxLength(3)]
-    public required byte[] ColorHex { get; init; }
+    public required string ColorHex { get; init; }
 }
 
 public record VoteResult<T>

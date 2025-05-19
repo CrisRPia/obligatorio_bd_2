@@ -20,7 +20,7 @@ public class ElectionController : Controller
 
     [HttpGet]
     [Route("{electionId}")]
-    public async Task<Election> GetElection(Guid electionId)
+    public async Task<Election> GetElection(string electionId)
     {
         throw new NotImplementedException();
     }
@@ -45,12 +45,12 @@ public record Filters
 
     [Description("Inclusive.")]
     public DateTime? MaximumDateTime { get; init; }
-    public Guid? DepartmentId { get; init; }
+    public string? DepartmentId { get; init; }
     public ElectionState? OnlyOpenOrClosed { get; init; }
 
     [Description("Do not specify to set to all.")]
     public IEnumerable<ElectionType> RestrictToTypes { get; init; } = [];
     public string? SearchTerm { get; init; }
     public bool? HasResults { get; init; }
-    public Guid? AvailableForUser { get; init; }
+    public string? AvailableForUser { get; init; }
 }

@@ -13,5 +13,5 @@ sql:
         out: ../src/Queries/Codegen
         options:
           generateCsproj: false
-          useDapper: false
+          useDapper: true
           namespaceName: backend.src.Queries.Codegen

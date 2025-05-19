@@ -12,9 +12,9 @@ public class CircuitController : Controller
     [HttpGet]
     [Route("{circuitId}/results/{electionId}")]
     public async Task<ElectionResult> GetResults(
-        Guid departmentId,
+        string departmentId,
         int circuitId,
-        Guid electionId
+        string electionId
     )
     {
         throw new NotImplementedException();
@@ -24,10 +24,10 @@ public class CircuitController : Controller
     [SafeAuthorize(roles: [Role.Admin, Role.BoardPresident])]
     [Route("{circuitId}/authorize_vote/{voteId}")]
     public async Task<DefaultOk> AuthorizeVote(
-        Guid departmentId,
+        string departmentId,
         int circuitId,
-        Guid electionId,
-        Guid voteId
+        string electionId,
+        string voteId
     )
     {
         throw new NotImplementedException();
@@ -35,7 +35,7 @@ public class CircuitController : Controller
 
     [HttpGet]
     [EndpointDescription("Get all circuits within a deparment.")]
-    public async Task<GetCircuitsReturn> GetAllCircuits(Guid departmentId)
+    public async Task<GetCircuitsReturn> GetAllCircuits(string departmentId)
     {
         throw new NotImplementedException();
     }

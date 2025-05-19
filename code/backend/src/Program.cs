@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using AspNetCore.Swagger.Themes;
 using backend.src.Services;
+using Cysharp.Serialization.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -23,6 +24,7 @@ builder.Services.AddSwaggerGen(options =>
     };
 
     options.AddSecurityDefinition("Bearer", jwtSecurityScheme);
+    options.MapType<Ulid>(() => new OpenApiSchema { Type = "string" });
 
     options.AddSecurityRequirement(
         new OpenApiSecurityRequirement
@@ -67,6 +69,7 @@ builder
         options.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter()
         );
+        options.JsonSerializerOptions.Converters.Add(new UlidJsonConverter());
     });
 
 var app = builder.Build();

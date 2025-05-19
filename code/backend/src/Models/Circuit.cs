@@ -15,7 +15,7 @@ public record Circuit
 public record Building
 {
     [Required]
-    public required Guid BuildingId { get; init; }
+    public required Ulid BuildingId { get; init; }
 
     [Required]
     public required Zone Zone { get; init; }
@@ -24,7 +24,7 @@ public record Building
 public record Zone
 {
     [Required]
-    public required Guid ZoneId { get; init; }
+    public required Ulid ZoneId { get; init; }
 
     [Description("City, town or other.")]
     [Required]
@@ -41,7 +41,7 @@ public enum LocalityType
 public record Locality
 {
     [Required]
-    public required Guid LocalityId { get; init; }
+    public required Ulid LocalityId { get; init; }
 
     [Required]
     public required Department Department { get; init; }

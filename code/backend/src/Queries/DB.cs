@@ -1,4 +1,5 @@
 using backend.src.Queries.Codegen;
+using MySqlConnector;
 
 namespace backend.src.Queries;
 
@@ -44,6 +45,9 @@ public static class DB
     {
         return new QueriesSql(CreateConnectionStringFromEnv());
     }
+
+    public static MySqlConnection NewConnection() =>
+        new(CreateConnectionStringFromEnv());
 
     public static QueriesSql Queries { get; } = CreateQueryInstance();
 }

@@ -4,161 +4,225 @@ using System.Collections.Generic;
 
 namespace backend.src.Queries.Codegen;
 
-public readonly record struct Citizen(
-    string CitizenId,
-    long UruguayanId,
-    long CredencialCivica,
-    string Name,
-    string Surname,
-    DateTime Birth,
-    string PasswordHash
-);
+public class Citizen
+{
+    public required byte[] CitizenId { get; init; }
+    public required string CredencialCivica { get; init; }
+    public required string Name { get; init; }
+    public required string Surname { get; init; }
+    public required DateTime Birth { get; init; }
+    public required string PasswordHash { get; init; }
+};
 
-public readonly record struct Department(long DepartmentId, string Name);
+public class Department
+{
+    public required byte[] DepartmentId { get; init; }
+    public required string Name { get; init; }
+};
 
-public readonly record struct Locality(
-    long LocalityId,
-    string Name,
-    LocalityType Type,
-    long DepartmentId
-);
+public class Locality
+{
+    public required byte[] LocalityId { get; init; }
+    public required string Name { get; init; }
+    public required LocalityType Type { get; init; }
+    public required byte[] DepartmentId { get; init; }
+};
 
-public readonly record struct Zone(
-    long ZoneId,
-    string Name,
-    string PostalCode,
-    long LocalityId
-);
+public class Zone
+{
+    public required byte[] ZoneId { get; init; }
+    public required string Name { get; init; }
+    public required string PostalCode { get; init; }
+    public required byte[] LocalityId { get; init; }
+};
 
-public readonly record struct PoliceOfficer(string PoliceOfficerId);
+public class PoliceOfficer
+{
+    public required byte[] PoliceOfficerId { get; init; }
+};
 
-public readonly record struct PoliceStation(
-    long PoliceStationId,
-    long ZoneId,
-    string Name,
-    string Address
-);
+public class PoliceStation
+{
+    public required byte[] PoliceStationId { get; init; }
+    public required byte[] ZoneId { get; init; }
+    public required string Name { get; init; }
+    public required string Address { get; init; }
+};
 
-public readonly record struct PoliceOfficerAssignedPoliceStation(
-    string PoliceOfficerId,
-    long PoliceStationId,
-    DateTime AssignedDate,
-    DateTime? DecomissionedDate
-);
+public class PoliceOfficerAssignedPoliceStation
+{
+    public required byte[] PoliceOfficerId { get; init; }
+    public required byte[] PoliceStationId { get; init; }
+    public required DateTime AssignedDate { get; init; }
+    public DateTime? DecomissionedDate { get; init; }
+};
 
-public readonly record struct Establishment(
-    long EstablishmentId,
-    string Name,
-    string Address,
-    long ZoneId
-);
+public class Establishment
+{
+    public required byte[] EstablishmentId { get; init; }
+    public required string Name { get; init; }
+    public required string Address { get; init; }
+    public required byte[] ZoneId { get; init; }
+};
 
-public readonly record struct PoliceOfficerAssignedEstablishment(
-    string PoliceOfficerId,
-    long EstablishmentId,
-    DateTime AssignedDate
-);
+public class PoliceOfficerAssignedEstablishment
+{
+    public required byte[] PoliceOfficerId { get; init; }
+    public required byte[] EstablishmentId { get; init; }
+    public required DateTime AssignedDate { get; init; }
+};
 
-public readonly record struct PollingStationPresident(
-    string PollingStationPresidentId,
-    string Org
-);
+public class PollingStationPresident
+{
+    public required byte[] PollingStationPresidentId { get; init; }
+    public required string Org { get; init; }
+};
 
-public readonly record struct PollingStationSecretary(
-    string PollingStationSecretaryId,
-    string Org
-);
+public class PollingStationSecretary
+{
+    public required byte[] PollingStationSecretaryId { get; init; }
+    public required string Org { get; init; }
+};
 
-public readonly record struct PollingStationVocal(
-    string PollingStationVocalId,
-    string Org
-);
+public class PollingStationVocal
+{
+    public required byte[] PollingStationVocalId { get; init; }
+    public required string Org { get; init; }
+};
 
-public readonly record struct Election(
-    long ElectionId,
-    string Description,
-    DateTime Date,
-    bool IsOpen
-);
+public class Election
+{
+    public required byte[] ElectionId { get; init; }
+    public required string Description { get; init; }
+    public required DateTime Date { get; init; }
+    public required bool IsOpen { get; init; }
+};
 
-public readonly record struct PollingDistrict(
-    long PollingDistrictNumber,
-    bool IsOpen,
-    long EstablishmentId
-);
+public class PollingDistrict
+{
+    public required byte[] PollingDistrictNumber { get; init; }
+    public required bool IsOpen { get; init; }
+    public required byte[] EstablishmentId { get; init; }
+};
 
-public readonly record struct ElectionHasPollingDistrict(
-    long ElectionId,
-    long PollingDistrictNumber
-);
+public class ElectionHasPollingDistrict
+{
+    public required byte[] ElectionId { get; init; }
+    public required byte[] PollingDistrictNumber { get; init; }
+};
 
-public readonly record struct PollingDistrictInElectionHasPollingStation(
-    string PollingStationPresidentId,
-    string PollingStationSecretaryId,
-    string PollingStationVocalId,
-    long PollingDistrictNumber,
-    long ElectionId
-);
+public class PollingDistrictInElectionHasPollingStation
+{
+    public required byte[] PollingStationPresidentId { get; init; }
+    public required byte[] PollingStationSecretaryId { get; init; }
+    public required byte[] PollingStationVocalId { get; init; }
+    public required byte[] PollingDistrictNumber { get; init; }
+    public required byte[] ElectionId { get; init; }
+};
 
-public readonly record struct CitizenVotesInPollingDistrictElection(
-    string CitizenId,
-    long ElectionId,
-    long PollingDistrictNumber
-);
+public class CitizenVotesInPollingDistrictElection
+{
+    public required byte[] CitizenId { get; init; }
+    public required byte[] ElectionId { get; init; }
+    public required byte[] PollingDistrictNumber { get; init; }
+};
 
-public readonly record struct CitizenAssignedIntPollingDistrictElection(
-    string CitizenId,
-    long ElectionId,
-    long PollingDistrictNumber
-);
+public class CitizenAssignedIntPollingDistrictElection
+{
+    public required byte[] CitizenId { get; init; }
+    public required byte[] ElectionId { get; init; }
+    public required byte[] PollingDistrictNumber { get; init; }
+};
 
-public readonly record struct Vote(long VoteId, VoteState? State);
+public class Vote
+{
+    public required byte[] VoteId { get; init; }
+    public VoteState? State { get; init; }
+};
 
-public readonly record struct Ballot(long BallotId);
+public class Ballot
+{
+    public required byte[] BallotId { get; init; }
+};
 
-public readonly record struct VoteContainsBallot(long VoteId, long BallotId);
+public class VoteContainsBallot
+{
+    public required byte[] VoteId { get; init; }
+    public required byte[] BallotId { get; init; }
+};
 
-public readonly record struct BooleanBallot(
-    long BooleanBallotId,
-    bool Value,
-    long TotalVotesWithValue
-);
+public class BooleanBallot
+{
+    public required byte[] BooleanBallotId { get; init; }
+    public required bool Value { get; init; }
+    public required int TotalVotesWithValue { get; init; }
+};
 
-public readonly record struct ListBallot(long ListBallotId, long ListNumber);
+public class ListBallot
+{
+    public required byte[] ListBallotId { get; init; }
+    public required byte[] ListNumber { get; init; }
+};
 
-public readonly record struct Candidate(string CandidateId);
+public class Candidate
+{
+    public required byte[] CandidateId { get; init; }
+};
 
-public readonly record struct ListBallotHasCandidate(
-    long? ListBallotId,
-    string? CandidateId,
-    long IndexInList,
-    ListBallotHasCandidateOrg Org
-);
+public class ListBallotHasCandidate
+{
+    public byte[]? ListBallotId { get; init; }
+    public byte[]? CandidateId { get; init; }
+    public required byte[] IndexInList { get; init; }
+    public required ListBallotHasCandidateOrg Org { get; init; }
+};
 
-public readonly record struct Party(long PartyId, string? HedquartersAdress);
+public class Party
+{
+    public required byte[] PartyId { get; init; }
+    public string? HedquartersAdress { get; init; }
+};
 
-public readonly record struct PartyHasCitizen(
-    long? ListBallotId,
-    long? PartyId,
-    PartyHasCitizenRole Role,
-    DateTime AdmissionDate,
-    DateTime? ExitDate
-);
+public class PartyHasCitizen
+{
+    public byte[]? ListBallotId { get; init; }
+    public byte[]? PartyId { get; init; }
+    public required PartyHasCitizenRole Role { get; init; }
+    public required DateTime AdmissionDate { get; init; }
+    public DateTime? ExitDate { get; init; }
+};
 
-public readonly record struct ListBallotBelongsToDepartment(
-    long ListId,
-    long DeparmentId
-);
+public class ListBallotBelongsToDepartment
+{
+    public required byte[] ListId { get; init; }
+    public required byte[] DeparmentId { get; init; }
+};
 
-public readonly record struct Pleibiscite(long ElectionId);
+public class Pleibiscite
+{
+    public required byte[] ElectionId { get; init; }
+};
 
-public readonly record struct Referndum(long ElectionId);
+public class Referndum
+{
+    public required byte[] ElectionId { get; init; }
+};
 
-public readonly record struct Presidential(long ElectionId);
+public class Presidential
+{
+    public required byte[] ElectionId { get; init; }
+};
 
-public readonly record struct Municipal(long ElectionId, long LocalityId);
+public class Municipal
+{
+    public required byte[] ElectionId { get; init; }
+    public required byte[] LocalityId { get; init; }
+};
 
-public readonly record struct Ballotage(long ElectionId);
+public class Ballotage
+{
+    public required byte[] ElectionId { get; init; }
+};
 
 public enum LocalityType
 {
@@ -170,18 +234,18 @@ public enum LocalityType
 
 public static class LocalityTypeExtensions
 {
-    private static readonly Dictionary<string, LocalityType> StringToEnum =
-        new Dictionary<string, LocalityType>()
+    private static readonly Dictionary<LocalityType, string> EnumToString =
+        new Dictionary<LocalityType, string>()
         {
-            [string.Empty] = LocalityType.Invalid,
-            ["city"] = LocalityType.City,
-            ["town"] = LocalityType.Town,
-            ["other"] = LocalityType.Other,
+            [LocalityType.Invalid] = string.Empty,
+            [LocalityType.City] = "city",
+            [LocalityType.Town] = "town",
+            [LocalityType.Other] = "other",
         };
 
-    public static LocalityType ToLocalityType(this string me)
+    public static string ToEnumString(this LocalityType me)
     {
-        return StringToEnum[me];
+        return EnumToString[me];
     }
 }
 
@@ -195,18 +259,18 @@ public enum VoteState
 
 public static class VoteStateExtensions
 {
-    private static readonly Dictionary<string, VoteState> StringToEnum =
-        new Dictionary<string, VoteState>()
+    private static readonly Dictionary<VoteState, string> EnumToString =
+        new Dictionary<VoteState, string>()
         {
-            [string.Empty] = VoteState.Invalid,
-            ["valid"] = VoteState.Valid,
-            ["out_of_district"] = VoteState.OutOfDistrict,
-            ["approved_out_of_district"] = VoteState.ApprovedOutOfDistrict,
+            [VoteState.Invalid] = string.Empty,
+            [VoteState.Valid] = "valid",
+            [VoteState.OutOfDistrict] = "out_of_district",
+            [VoteState.ApprovedOutOfDistrict] = "approved_out_of_district",
         };
 
-    public static VoteState ToVoteState(this string me)
+    public static string ToEnumString(this VoteState me)
     {
-        return StringToEnum[me];
+        return EnumToString[me];
     }
 }
 
@@ -223,23 +287,21 @@ public enum ListBallotHasCandidateOrg
 public static class ListBallotHasCandidateOrgExtensions
 {
     private static readonly Dictionary<
-        string,
-        ListBallotHasCandidateOrg
-    > StringToEnum = new Dictionary<string, ListBallotHasCandidateOrg>()
+        ListBallotHasCandidateOrg,
+        string
+    > EnumToString = new Dictionary<ListBallotHasCandidateOrg, string>()
     {
-        [string.Empty] = ListBallotHasCandidateOrg.Invalid,
-        ["deputy"] = ListBallotHasCandidateOrg.Deputy,
-        ["senator"] = ListBallotHasCandidateOrg.Senator,
-        ["departmental_board"] = ListBallotHasCandidateOrg.DepartmentalBoard,
-        ["municipal_councilor"] = ListBallotHasCandidateOrg.MunicipalCouncilor,
-        ["main_candidate"] = ListBallotHasCandidateOrg.MainCandidate,
+        [ListBallotHasCandidateOrg.Invalid] = string.Empty,
+        [ListBallotHasCandidateOrg.Deputy] = "deputy",
+        [ListBallotHasCandidateOrg.Senator] = "senator",
+        [ListBallotHasCandidateOrg.DepartmentalBoard] = "departmental_board",
+        [ListBallotHasCandidateOrg.MunicipalCouncilor] = "municipal_councilor",
+        [ListBallotHasCandidateOrg.MainCandidate] = "main_candidate",
     };
 
-    public static ListBallotHasCandidateOrg ToListBallotHasCandidateOrg(
-        this string me
-    )
+    public static string ToEnumString(this ListBallotHasCandidateOrg me)
     {
-        return StringToEnum[me];
+        return EnumToString[me];
     }
 }
 
@@ -253,17 +315,17 @@ public enum PartyHasCitizenRole
 public static class PartyHasCitizenRoleExtensions
 {
     private static readonly Dictionary<
-        string,
-        PartyHasCitizenRole
-    > StringToEnum = new Dictionary<string, PartyHasCitizenRole>()
+        PartyHasCitizenRole,
+        string
+    > EnumToString = new Dictionary<PartyHasCitizenRole, string>()
     {
-        [string.Empty] = PartyHasCitizenRole.Invalid,
-        ["president"] = PartyHasCitizenRole.President,
-        ["vice_president"] = PartyHasCitizenRole.VicePresident,
+        [PartyHasCitizenRole.Invalid] = string.Empty,
+        [PartyHasCitizenRole.President] = "president",
+        [PartyHasCitizenRole.VicePresident] = "vice_president",
     };
 
-    public static PartyHasCitizenRole ToPartyHasCitizenRole(this string me)
+    public static string ToEnumString(this PartyHasCitizenRole me)
     {
-        return StringToEnum[me];
+        return EnumToString[me];
     }
 }

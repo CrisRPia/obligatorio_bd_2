@@ -8,6 +8,6 @@ public record Department
     public required string Name { get; init; }
 
     [Required]
-    public required Guid DepartmentId { get; init; }
+    public required string DepartmentId { get; init; }
     // [Required] public required
 }
