@@ -4,4 +4,266 @@ using System.Collections.Generic;
 
 namespace backend.src.Queries.Codegen;
 
-public readonly record struct Author(long Id, string Name, string? Bio);
+public readonly record struct Citizen(
+    string CitizenId,
+    long UruguayanId,
+    long CredencialCivica,
+    string Name,
+    string Surname,
+    DateTime Birth,
+    string PasswordHash
+);
+
+public readonly record struct Department(long DepartmentId, string Name);
+
+public readonly record struct Locality(
+    long LocalityId,
+    string Name,
+    LocalityType Type,
+    long DepartmentId
+);
+
+public readonly record struct Zone(
+    long ZoneId,
+    string Name,
+    string PostalCode,
+    long LocalityId
+);
+
+public readonly record struct PoliceOfficer(string PoliceOfficerId);
+
+public readonly record struct PoliceStation(
+    long PoliceStationId,
+    long ZoneId,
+    string Name,
+    string Address
+);
+
+public readonly record struct PoliceOfficerAssignedPoliceStation(
+    string PoliceOfficerId,
+    long PoliceStationId,
+    DateTime AssignedDate,
+    DateTime? DecomissionedDate
+);
+
+public readonly record struct Establishment(
+    long EstablishmentId,
+    string Name,
+    string Address,
+    long ZoneId
+);
+
+public readonly record struct PoliceOfficerAssignedEstablishment(
+    string PoliceOfficerId,
+    long EstablishmentId,
+    DateTime AssignedDate
+);
+
+public readonly record struct PollingStationPresident(
+    string PollingStationPresidentId,
+    string Org
+);
+
+public readonly record struct PollingStationSecretary(
+    string PollingStationSecretaryId,
+    string Org
+);
+
+public readonly record struct PollingStationVocal(
+    string PollingStationVocalId,
+    string Org
+);
+
+public readonly record struct Election(
+    long ElectionId,
+    string Description,
+    DateTime Date,
+    bool IsOpen
+);
+
+public readonly record struct PollingDistrict(
+    long PollingDistrictNumber,
+    bool IsOpen,
+    long EstablishmentId
+);
+
+public readonly record struct ElectionHasPollingDistrict(
+    long ElectionId,
+    long PollingDistrictNumber
+);
+
+public readonly record struct PollingDistrictInElectionHasPollingStation(
+    string PollingStationPresidentId,
+    string PollingStationSecretaryId,
+    string PollingStationVocalId,
+    long PollingDistrictNumber,
+    long ElectionId
+);
+
+public readonly record struct CitizenVotesInPollingDistrictElection(
+    string CitizenId,
+    long ElectionId,
+    long PollingDistrictNumber
+);
+
+public readonly record struct CitizenAssignedIntPollingDistrictElection(
+    string CitizenId,
+    long ElectionId,
+    long PollingDistrictNumber
+);
+
+public readonly record struct Vote(long VoteId, VoteState? State);
+
+public readonly record struct Ballot(long BallotId);
+
+public readonly record struct VoteContainsBallot(long VoteId, long BallotId);
+
+public readonly record struct BooleanBallot(
+    long BooleanBallotId,
+    bool Value,
+    long TotalVotesWithValue
+);
+
+public readonly record struct ListBallot(long ListBallotId, long ListNumber);
+
+public readonly record struct Candidate(string CandidateId);
+
+public readonly record struct ListBallotHasCandidate(
+    long? ListBallotId,
+    string? CandidateId,
+    long IndexInList,
+    ListBallotHasCandidateOrg Org
+);
+
+public readonly record struct Party(long PartyId, string? HedquartersAdress);
+
+public readonly record struct PartyHasCitizen(
+    long? ListBallotId,
+    long? PartyId,
+    PartyHasCitizenRole Role,
+    DateTime AdmissionDate,
+    DateTime? ExitDate
+);
+
+public readonly record struct ListBallotBelongsToDepartment(
+    long ListId,
+    long DeparmentId
+);
+
+public readonly record struct Pleibiscite(long ElectionId);
+
+public readonly record struct Referndum(long ElectionId);
+
+public readonly record struct Presidential(long ElectionId);
+
+public readonly record struct Municipal(long ElectionId, long LocalityId);
+
+public readonly record struct Ballotage(long ElectionId);
+
+public enum LocalityType
+{
+    Invalid = 0, // reserved for invalid enum value
+    City = 1,
+    Town = 2,
+    Other = 3,
+}
+
+public static class LocalityTypeExtensions
+{
+    private static readonly Dictionary<string, LocalityType> StringToEnum =
+        new Dictionary<string, LocalityType>()
+        {
+            [string.Empty] = LocalityType.Invalid,
+            ["city"] = LocalityType.City,
+            ["town"] = LocalityType.Town,
+            ["other"] = LocalityType.Other,
+        };
+
+    public static LocalityType ToLocalityType(this string me)
+    {
+        return StringToEnum[me];
+    }
+}
+
+public enum VoteState
+{
+    Invalid = 0, // reserved for invalid enum value
+    Valid = 1,
+    OutOfDistrict = 2,
+    ApprovedOutOfDistrict = 3,
+}
+
+public static class VoteStateExtensions
+{
+    private static readonly Dictionary<string, VoteState> StringToEnum =
+        new Dictionary<string, VoteState>()
+        {
+            [string.Empty] = VoteState.Invalid,
+            ["valid"] = VoteState.Valid,
+            ["out_of_district"] = VoteState.OutOfDistrict,
+            ["approved_out_of_district"] = VoteState.ApprovedOutOfDistrict,
+        };
+
+    public static VoteState ToVoteState(this string me)
+    {
+        return StringToEnum[me];
+    }
+}
+
+public enum ListBallotHasCandidateOrg
+{
+    Invalid = 0, // reserved for invalid enum value
+    Deputy = 1,
+    Senator = 2,
+    DepartmentalBoard = 3,
+    MunicipalCouncilor = 4,
+    MainCandidate = 5,
+}
+
+public static class ListBallotHasCandidateOrgExtensions
+{
+    private static readonly Dictionary<
+        string,
+        ListBallotHasCandidateOrg
+    > StringToEnum = new Dictionary<string, ListBallotHasCandidateOrg>()
+    {
+        [string.Empty] = ListBallotHasCandidateOrg.Invalid,
+        ["deputy"] = ListBallotHasCandidateOrg.Deputy,
+        ["senator"] = ListBallotHasCandidateOrg.Senator,
+        ["departmental_board"] = ListBallotHasCandidateOrg.DepartmentalBoard,
+        ["municipal_councilor"] = ListBallotHasCandidateOrg.MunicipalCouncilor,
+        ["main_candidate"] = ListBallotHasCandidateOrg.MainCandidate,
+    };
+
+    public static ListBallotHasCandidateOrg ToListBallotHasCandidateOrg(
+        this string me
+    )
+    {
+        return StringToEnum[me];
+    }
+}
+
+public enum PartyHasCitizenRole
+{
+    Invalid = 0, // reserved for invalid enum value
+    President = 1,
+    VicePresident = 2,
+}
+
+public static class PartyHasCitizenRoleExtensions
+{
+    private static readonly Dictionary<
+        string,
+        PartyHasCitizenRole
+    > StringToEnum = new Dictionary<string, PartyHasCitizenRole>()
+    {
+        [string.Empty] = PartyHasCitizenRole.Invalid,
+        ["president"] = PartyHasCitizenRole.President,
+        ["vice_president"] = PartyHasCitizenRole.VicePresident,
+    };
+
+    public static PartyHasCitizenRole ToPartyHasCitizenRole(this string me)
+    {
+        return StringToEnum[me];
+    }
+}

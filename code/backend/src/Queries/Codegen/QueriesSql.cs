@@ -26,36 +26,45 @@ public class QueriesSql
 
     private string ConnectionString { get; }
 
-    private const string GetAuthorSql =
-        "SELECT id, name, bio FROM authors WHERE  id  =  @id  LIMIT  1  ";
+    private const string GetCitizenSql =
+        "SELECT citizen_id, uruguayan_id, credencial_civica, name, surname, birth, password_hash FROM  citizen  WHERE  uruguayan_id  =  @uruguayan_id  ";
 
-    public readonly record struct GetAuthorRow(
-        long Id,
+    public readonly record struct GetCitizenRow(
+        string CitizenId,
+        long UruguayanId,
+        long CredencialCivica,
         string Name,
-        string? Bio
+        string Surname,
+        DateTime Birth,
+        string PasswordHash
     );
 
-    public readonly record struct GetAuthorArgs(long Id);
+    public readonly record struct GetCitizenArgs(long UruguayanId);
 
-    public async Task<GetAuthorRow?> GetAuthor(GetAuthorArgs args)
+    public async Task<GetCitizenRow?> GetCitizen(GetCitizenArgs args)
     {
         using (var connection = new MySqlConnection(ConnectionString))
         {
             await connection.OpenAsync();
-            using (var command = new MySqlCommand(GetAuthorSql, connection))
+            using (var command = new MySqlCommand(GetCitizenSql, connection))
             {
-                command.Parameters.AddWithValue("@id", args.Id);
+                command.Parameters.AddWithValue(
+                    "@uruguayan_id",
+                    args.UruguayanId
+                );
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     if (await reader.ReadAsync())
                     {
-                        return new GetAuthorRow
+                        return new GetCitizenRow
                         {
-                            Id = reader.GetInt64(0),
-                            Name = reader.GetString(1),
-                            Bio = reader.IsDBNull(2)
-                                ? null
-                                : reader.GetString(2),
+                            CitizenId = reader.GetString(0),
+                            UruguayanId = reader.GetInt64(1),
+                            CredencialCivica = reader.GetInt64(2),
+                            Name = reader.GetString(3),
+                            Surname = reader.GetString(4),
+                            Birth = reader.GetDateTime(5),
+                            PasswordHash = reader.GetString(6),
                         };
                     }
                 }
@@ -63,84 +72,5 @@ public class QueriesSql
         }
 
         return null;
-    }
-
-    private const string ListAuthorsSql =
-        "SELECT id, name, bio FROM authors ORDER  BY  name  ";
-
-    public readonly record struct ListAuthorsRow(
-        long Id,
-        string Name,
-        string? Bio
-    );
-
-    public async Task<List<ListAuthorsRow>> ListAuthors()
-    {
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            await connection.OpenAsync();
-            using (var command = new MySqlCommand(ListAuthorsSql, connection))
-            {
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    var result = new List<ListAuthorsRow>();
-                    while (await reader.ReadAsync())
-                    {
-                        result.Add(
-                            new ListAuthorsRow
-                            {
-                                Id = reader.GetInt64(0),
-                                Name = reader.GetString(1),
-                                Bio = reader.IsDBNull(2)
-                                    ? null
-                                    : reader.GetString(2),
-                            }
-                        );
-                    }
-
-                    return result;
-                }
-            }
-        }
-    }
-
-    private const string CreateAuthorSql =
-        "INSERT INTO authors ( name , bio ) VALUES ( @name, @bio ) ";
-
-    public readonly record struct CreateAuthorArgs(string Name, string? Bio);
-
-    public async Task<long> CreateAuthor(CreateAuthorArgs args)
-    {
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            await connection.OpenAsync();
-            using (var command = new MySqlCommand(CreateAuthorSql, connection))
-            {
-                command.Parameters.AddWithValue("@name", args.Name);
-                command.Parameters.AddWithValue(
-                    "@bio",
-                    args.Bio ?? (object)DBNull.Value
-                );
-                return await command.ExecuteNonQueryAsync();
-            }
-        }
-    }
-
-    private const string DeleteAuthorSql =
-        "DELETE FROM authors WHERE  id  =  @id  ";
-
-    public readonly record struct DeleteAuthorArgs(long Id);
-
-    public async Task DeleteAuthor(DeleteAuthorArgs args)
-    {
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            await connection.OpenAsync();
-            using (var command = new MySqlCommand(DeleteAuthorSql, connection))
-            {
-                command.Parameters.AddWithValue("@id", args.Id);
-                await command.ExecuteScalarAsync();
-            }
-        }
     }
 }

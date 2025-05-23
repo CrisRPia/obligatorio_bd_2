@@ -2,12 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using backend.src.Attributes;
 using backend.src.Models;
-using backend.src.Queries;
-using backend.src.Queries.Codegen;
 using backend.src.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 
 namespace backend.src.Controllers;
 
@@ -45,18 +42,6 @@ public class DebugController(IConfiguration Configuration) : Controller
             JwtToken = jwt.GenerateJwtToken("fake", "fake", roles),
             Content = roles,
         };
-    }
-
-    [HttpGet]
-    [Route("TestAuthors")]
-    public async Task<IEnumerable<QueriesSql.ListAuthorsRow>> Test() {
-        return await DB.Queries.ListAuthors();
-    }
-
-    [HttpPost]
-    [Route("TestAuthors")]
-    public async Task<long> Test(QueriesSql.CreateAuthorArgs author) {
-        return await DB.Queries.CreateAuthor(author);
     }
 }
 
