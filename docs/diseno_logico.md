@@ -221,3 +221,48 @@ municipal(
 ```
 ballotage(id_eleccion PK FK)
 ```
+
+## Foreign Keys
+
+- `policía.CI_ciudadano` → `ciudadano.CI`
+- `policía_asignado_comisaría.CI_policía` → `policía.CI_ciudadano`
+- `policía_asignado_comisaría.ID_comisaría` → `comisaría.ID_comisaría`
+- `policía_asignado_establecimiento.CI_policía` → `policía.CI_ciudadano`
+- `policía_asignado_establecimiento.ID_establecimiento` → `establecimiento.ID_establecimiento`
+- `establecimiento.ID_zona` → `zona.ID_zona`
+- `zona.ID_localidad` → `localidad.ID_localidad`
+- `localidad.ID_departamento` → `departamento.ID_departamento`
+- `presidente.ID_ciudadano` → `ciudadano.ID_ciudadano`
+- `secretario.ID_ciudadano` → `ciudadano.ID_ciudadano`
+- `vocal.ID_ciudadano` → `ciudadano.ID_ciudadano`
+- `circuito.ID_establecimiento` → `establecimiento.ID_establecimiento`
+- `eleccion_tiene_circuito.ID_eleccion` → `eleccion.ID_eleccion`
+- `eleccion_tiene_circuito.numero_circuito` → `circuito.numero_circuito`
+- `circuito_eleccion_tiene_mesa.ID_presidente` → `presidente.ID_ciudadano`
+- `circuito_eleccion_tiene_mesa.numero_circuito` → `circuito.numero_circuito`
+- `circuito_eleccion_tiene_mesa.ID_eleccion` → `eleccion.ID_eleccion`
+- `circuito_eleccion_tiene_mesa.ID_secretario` → `secretario.ID_ciudadano`
+- `circuito_eleccion_tiene_mesa.ID_vocal` → `vocal.ID_ciudadano`
+- `ciudadano_vota_circuito_eleccion.ID_ciudadano` → `ciudadano.ID_ciudadano`
+- `ciudadano_vota_circuito_eleccion.ID_eleccion` → `eleccion.ID_eleccion`
+- `ciudadano_vota_circuito_eleccion.numero_circuito` → `circuito.numero_circuito`
+- `ciudadano_asignado_circuito_eleccion.ID_ciudadano` → `ciudadano.ID_ciudadano`
+- `ciudadano_asignado_circuito_eleccion.ID_eleccion` → `eleccion.ID_eleccion`
+- `ciudadano_asignado_circuito_eleccion.numero_circuito` → `circuito.numero_circuito`
+- `voto_tiene_papeleta.ID_voto` → `voto.ID_voto`
+- `voto_tiene_papeleta.ID_papeleta` → `papeleta.ID_papeleta`
+- `booleana.ID_papeleta` → `papeleta.ID_papeleta`
+- `lista.ID_papeleta` → `papeleta.ID_papeleta`
+- `candidato.ID_ciudadano` → `ciudadano.ID_ciudadano`
+- `lista_tiene_candidato.ID_lista` → `lista.ID_papeleta`
+- `lista_tiene_candidato.ID_candidato` → `candidato.ID_ciudadano`
+- `partido_tiene_ciudadano.ID_ciudadano` → `ciudadano.ID_ciudadano`
+- `partido_tiene_ciudadano.ID_partido` → `partido.ID_partido`
+- `lista_pertenece_departamento.ID_lista` → `lista.ID_papeleta`
+- `lista_pertenece_departamento.ID_departamento` → `departamento.ID_departamento`
+- `plebiscito.ID_eleccion` → `eleccion.ID_eleccion`
+- `referendum.ID_eleccion` → `eleccion.ID_eleccion`
+- `presidencial.ID_eleccion` → `eleccion.ID_eleccion`
+- `municipal.ID_eleccion` → `eleccion.ID_eleccion`
+- `municipal.ID_localidad` → `localidad.ID_localidad`
+- `ballotage.ID_eleccion` → `eleccion.ID_eleccion`
