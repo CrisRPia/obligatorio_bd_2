@@ -8,6 +8,7 @@ public class Citizen
 {
     public required byte[] CitizenId { get; init; }
     public required string CredencialCivica { get; init; }
+    public required int UruguayanId { get; init; }
     public required string Name { get; init; }
     public required string Surname { get; init; }
     public required DateTime Birth { get; init; }

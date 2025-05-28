@@ -58,8 +58,38 @@ public partial class QueriesSql
         }
     }
 
+    public const string InsertCitizenSql =
+        "INSERT INTO  citizen ( citizen_id , uruguayan_id, credencial_civica, name, surname, birth, password_hash ) VALUES ( @citizen_id, @uruguayan_id, @credencial_civica, @name, @surname, @birth, @password_hash ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertCitizenArgs
+    {
+        public required byte[] CitizenId { get; init; }
+        public required int UruguayanId { get; init; }
+        public required string CredencialCivica { get; init; }
+        public required string Name { get; init; }
+        public required string Surname { get; init; }
+        public required DateTime Birth { get; init; }
+        public required string PasswordHash { get; init; }
+    };
+
+    public async Task InsertCitizen(InsertCitizenArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            queryParams.Add("uruguayan_id", args.UruguayanId);
+            queryParams.Add("credencial_civica", args.CredencialCivica);
+            queryParams.Add("name", args.Name);
+            queryParams.Add("surname", args.Surname);
+            queryParams.Add("birth", args.Birth);
+            queryParams.Add("password_hash", args.PasswordHash);
+            await connection.ExecuteAsync(InsertCitizenSql, queryParams);
+        }
+    }
+
     public const string SelectUserAssignmentSql =
-        "SELECT a.election_id, a.polling_district_number FROM  citizen_assigned_int_polling_district_election  a  LEFT  JOIN  citizen_votes_in_polling_district_election  v  ON  v . election_id  =  a . election_id  AND  v . citizen_id  =  a . citizen_id  AND  v . polling_district_number  =  a . polling_district_number  WHERE  a . citizen_id  =  @citizen_id  AND  v . election_id  IS  NULL ; SELECT  LAST_INSERT_ID ( ) ";
+        "SELECT a.election_id, a.polling_district_number FROM  citizen_assigned_int_polling_district_election  a  LEFT  JOIN  citizen_votes_in_polling_district_election  v  ON  v . election_id  =  a . election_id  AND  v . citizen_id  =  a . citizen_id  AND  v . polling_district_number  =  a . polling_district_number  INNER  JOIN  election  e  ON  a . election_id  =  e . election_id  WHERE  a . citizen_id  =  @citizen_id  AND  e . date < CURRENT_DATE ( ) AND  e . is_open  AND  v . election_id  IS  NULL ; SELECT  LAST_INSERT_ID ( ) ";
 
     public partial class SelectUserAssignmentRow
     {
@@ -129,12 +159,13 @@ public partial class QueriesSql
     }
 
     public const string GetCitizenSql =
-        "SELECT citizen_id, credencial_civica, name, surname, birth, password_hash FROM  citizen ; SELECT  LAST_INSERT_ID ( ) ";
+        "SELECT citizen_id, credencial_civica, uruguayan_id, name, surname, birth, password_hash FROM  citizen ; SELECT  LAST_INSERT_ID ( ) ";
 
     public partial class GetCitizenRow
     {
         public required byte[] CitizenId { get; init; }
         public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
         public required string Name { get; init; }
         public required string Surname { get; init; }
         public required DateTime Birth { get; init; }

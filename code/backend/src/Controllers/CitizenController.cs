@@ -25,13 +25,16 @@ public class CitizenController : Controller
         using var transaction = await connection.BeginTransactionAsync();
         try
         {
+            var userAssignmentResult = await DB.Queries.SelectUserAssignment(
+                new QueriesSql.SelectUserAssignmentArgs
+                {
+                    CitizenId = citizenId.ToByteArray(),
+                }
+            );
 
-            var userAssignmentResult = await DB.Queries.SelectUserAssignment(new QueriesSql.SelectUserAssignmentArgs
-            {
-                CitizenId = citizenId.ToByteArray(),
-            });
-
-            var isObserved = userAssignmentResult.Select((r) => Ulid.Parse(r.PollingDistrictNumber)).Contains(circuitId);
+            var isObserved = userAssignmentResult
+                .Select((r) => Ulid.Parse(r.PollingDistrictNumber))
+                .Contains(circuitId);
 
             // TODO: ADD CHECK FOR BALLOTS
 
@@ -56,7 +59,7 @@ public class CitizenController : Controller
             transaction.Rollback();
             throw;
         }
-        
+
         return DefaultOk.Instance;
     }
 }

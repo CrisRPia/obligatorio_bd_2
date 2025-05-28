@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS citizen (
     citizen_id        BINARY(16) PRIMARY KEY,
     credencial_civica TEXT UNIQUE NOT NULL, -- No english equivalent.
+    uruguayan_id      INT UNIQUE  NOT NULL,
     name              TEXT        NOT NULL,
     surname           TEXT        NOT NULL,
     birth             DATE        NOT NULL,

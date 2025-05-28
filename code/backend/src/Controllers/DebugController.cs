@@ -14,11 +14,25 @@ namespace backend.src.Controllers;
 public class DebugController(IConfiguration Configuration) : Controller
 {
     [HttpPost]
-    [Route("Fake")]
+    [Route("fake")]
     public async Task<StateSnapshot> Fake(FakeInput input)
     {
         throw new NotImplementedException();
     }
+
+    [HttpGet]
+    [Route("fake/citizen")]
+    public FullCitizen Fake() => FakeService.Instance.FakeCitizen();
+
+    [HttpGet]
+    [Route("fake/citizens")]
+    public IEnumerable<FullCitizen> Fake(
+        [FromQuery] int startUid,
+        int endUid
+    ) =>
+        FakeService.Instance.FakeCitizens(
+            Enumerable.Range(startUid, endUid - startUid)
+        );
 
     [HttpGet]
     [Route("JWT")]

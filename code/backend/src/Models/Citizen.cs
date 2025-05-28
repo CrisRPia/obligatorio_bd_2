@@ -9,7 +9,7 @@ public record BaseCitizen
     public required string CredencialCivica { get; init; }
 
     [Required, UruguayanIdAttribute]
-    public required string UruguayanId { get; init; }
+    public required int UruguayanId { get; init; }
 }
 
 public record PartialCitizen : BaseCitizen

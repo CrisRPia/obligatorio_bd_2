@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using backend.src.Services;
 
 namespace backend.src.Attributes;
 
@@ -10,7 +11,6 @@ namespace backend.src.Attributes;
 )]
 class UruguayanIdAttribute : ValidationAttribute
 {
-    private static readonly int[] Multipliers = [2, 9, 8, 7, 6, 3, 4];
     private const string DefaultErrorMessage =
         "Invalid Uruguayan Identity Document number.";
 
@@ -29,18 +29,11 @@ class UruguayanIdAttribute : ValidationAttribute
         if (value is not int checkedValue)
             return BadResult(validationContext);
 
-        var idDigits = checkedValue
-            .ToString()
-            .ToCharArray()
-            .Select(x => (int)char.GetNumericValue(x))
-            .ToArray();
+        var verifierDigit = UruguayanIdVerifier.GetValidationDigit(
+            checkedValue
+        );
 
-        if (idDigits.Length != 8)
-            return BadResult(validationContext);
-
-        var verifierDigit = Multipliers.Zip(idDigits, (a, b) => a * b).Sum();
-
-        if (verifierDigit != idDigits.Last())
+        if (verifierDigit != checkedValue % 10)
             return BadResult(validationContext);
 
         return ValidationResult.Success!;
