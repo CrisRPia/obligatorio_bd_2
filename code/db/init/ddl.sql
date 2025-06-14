@@ -1,11 +1,13 @@
+-- USE votes_db;
+
 CREATE TABLE IF NOT EXISTS citizen (
     citizen_id        BINARY(16) PRIMARY KEY,
-    credencial_civica TEXT UNIQUE NOT NULL, -- No english equivalent.
-    uruguayan_id      INT UNIQUE  NOT NULL,
-    name              TEXT        NOT NULL,
-    surname           TEXT        NOT NULL,
-    birth             DATE        NOT NULL,
-    password_hash     TEXT        NOT NULL
+    credencial_civica VARCHAR(100) UNIQUE NOT NULL, -- No english equivalent.
+    uruguayan_id      INT UNIQUE          NOT NULL,
+    name              TEXT                NOT NULL,
+    surname           TEXT                NOT NULL,
+    birth             DATE                NOT NULL,
+    password_hash     TEXT                NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS department (
@@ -84,7 +86,7 @@ CREATE TABLE IF NOT EXISTS election (
 
 -- Circuito
 CREATE TABLE IF NOT EXISTS polling_district (
-    polling_district_number BINARY(16) PRIMARY KEY,
+    polling_district_number INT PRIMARY KEY,
     is_open                 BOOL       NOT NULL DEFAULT TRUE,
     establishment_id        BINARY(16) NOT NULL REFERENCES establishment (establishment_id)
 );
@@ -142,7 +144,7 @@ CREATE TABLE IF NOT EXISTS boolean_ballot (
 
 CREATE TABLE IF NOT EXISTS list_ballot (
     list_ballot_id BINARY(16) PRIMARY KEY REFERENCES ballot (ballot_id),
-    list_number    BINARY(16) NOT NULL
+    list_number    INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS candidate (
@@ -153,7 +155,7 @@ CREATE TABLE IF NOT EXISTS list_ballot_has_candidate (
     list_ballot_id BINARY(16) REFERENCES list_ballot (list_ballot_id),
     candidate_id   BINARY(16) REFERENCES candidate (candidate_id),
     -- Starts at 0
-    index_in_list  BINARY(16)                                                                                NOT NULL,
+    index_in_list  INT                                                                                       NOT NULL,
     org            ENUM ('deputy', 'senator', 'departmental_board', 'municipal_councilor', 'main_candidate') NOT NULL,
     PRIMARY KEY (list_ballot_id, candidate_id)
 );
