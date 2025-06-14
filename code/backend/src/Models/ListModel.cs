@@ -6,7 +6,7 @@ namespace backend.src.Models;
 public partial record ListModel<T>
 {
     [Required]
-    public required List<T> Items { get; init; }
+    public required IReadOnlyList<T> Items { get; init; }
 }
 
 public partial record ListModel<T> : IEnumerable<T>

@@ -6,20 +6,24 @@ using Microsoft.OpenApi.Extensions;
 
 namespace backend.src.Services;
 
-public class JwtService(IConfiguration configuration)
+public interface IJwtService
+{
+    SecurityKey Key { get; }
+    string Issuer { get; }
+    string Audience { get; }
+
+    string GenerateJwtToken(string username, string userId, IEnumerable<Role> roles);
+}
+
+public class JwtService(IConfiguration configuration) : IJwtService
 {
     private IConfiguration Configuration { get; init; } = configuration;
     private IConfigurationSection Section => Configuration.GetSection("Jwt");
-    public SecurityKey Key =>
-        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Section["Key"]!));
+    public SecurityKey Key => new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Section["Key"]!));
     public string Issuer => Section["Issuer"]!;
     public string Audience => Section["Audience"]!;
 
-    public string GenerateJwtToken(
-        string username,
-        string userId,
-        IEnumerable<Role> roles
-    )
+    public string GenerateJwtToken(string username, string userId, IEnumerable<Role> roles)
     {
         List<Claim> claims =
         [
@@ -40,10 +44,7 @@ public class JwtService(IConfiguration configuration)
                 Issuer = Issuer,
                 Audience = Audience,
                 Expires = DateTime.UtcNow.AddMinutes(30),
-                SigningCredentials = new SigningCredentials(
-                    Key,
-                    SecurityAlgorithms.HmacSha512
-                ),
+                SigningCredentials = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512),
             }
         );
 

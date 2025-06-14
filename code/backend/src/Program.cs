@@ -9,6 +9,10 @@ using SwaggerThemes;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IFakeService, FakeService>();
+builder.Services.AddScoped<ICitizenService, CitizenService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -66,9 +70,7 @@ builder
     .Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(
-            new JsonStringEnumConverter()
-        );
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.Converters.Add(new UlidJsonConverter());
     });
 

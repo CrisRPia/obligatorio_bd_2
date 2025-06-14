@@ -5,10 +5,10 @@ namespace backend.src.Models;
 
 public record BaseCitizen
 {
-    [Required, CredencialCivicaAttribute]
+    [Required, CredencialCivica]
     public required string CredencialCivica { get; init; }
 
-    [Required, UruguayanIdAttribute]
+    [Required, UruguayanId]
     public required int UruguayanId { get; init; }
 }
 

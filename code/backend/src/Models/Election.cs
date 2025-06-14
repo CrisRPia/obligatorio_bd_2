@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using backend.src.Attributes;
 
 namespace backend.src.Models;
 
@@ -44,7 +43,10 @@ public record Election
     public required DateOnly Date { get; init; }
 
     [Required]
-    public required string ElectionId { get; init; }
+    public required Ulid ElectionId { get; init; }
+
+    public Ulid? DepartmentId { get; init; }
+
     public ElectionResult? Result { get; init; }
 }
 
@@ -54,9 +56,7 @@ public record ElectionResult
     public required ElectionType Type { get; init; }
 
     public IEnumerable<VoteResult<BooleanVote>>? BooleanResult { get; init; }
-    public IEnumerable<
-        VoteResult<CandidateList>
-    >? ListBasedResult { get; init; }
+    public IEnumerable<VoteResult<CandidateList>>? ListBasedResult { get; init; }
 
     [Required]
     public int TotalVotes { get; init; }

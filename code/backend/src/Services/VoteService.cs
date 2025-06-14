@@ -43,9 +43,7 @@ public record VoteService
         });
     }
 
-    private static (Ulid rowId, MySqlBatchCommand command) CreateVote(
-        bool isObserved
-    )
+    private static (Ulid rowId, MySqlBatchCommand command) CreateVote(bool isObserved)
     {
         var command = new MySqlBatchCommand(QueriesSql.InsertVoteSql);
         var id = Ulid.NewUlid();

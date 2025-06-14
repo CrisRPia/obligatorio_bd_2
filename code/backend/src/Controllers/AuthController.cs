@@ -1,48 +1,73 @@
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using backend.src.Models;
+using backend.src.Queries;
+using backend.src.Queries.Codegen;
+using backend.src.Services;
+using Isopoh.Cryptography.Argon2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.src.Controllers;
 
 [ApiController]
 [Route("auth/")]
-public class AuthController : Controller
+public class AuthController(IJwtService jwt) : Controller
 {
     [HttpPost]
-    [Route("polling_station/login")]
-    public async Task<AuthResponse<PollingStationMember>> PollongStationLogin(
-        BaseCitizen citizen
-    )
+    [Route("")]
+    public async Task<AuthResponse<FullCitizen>> Login(LoginCredentials citizen)
     {
-        throw new NotImplementedException();
-    }
+        var select = await DB.Queries.LoginCitizen(
+            new QueriesSql.LoginCitizenArgs
+            {
+                CredencialCivica = citizen.CredencialCivica,
+                UruguayanId = citizen.UruguayanId,
+            }
+        );
 
-    [HttpPost]
-    [Route("polling_station/register")]
-    public async Task<
-        AuthResponse<PollingStationMember>
-    > PollingStationRegister(PollingStationMember citizen)
-    {
-        throw new NotImplementedException();
-    }
+        if (select is null || !Argon2.Verify(select.PasswordHash, citizen.Password))
+            throw new NotImplementedException();
 
-    [HttpPost]
-    [Route("police_officer/register")]
-    public async Task<AuthResponse<PoliceOfficer>> PoliceOfficerRegister(
-        PollingStationMember citizen
-    )
-    {
-        throw new NotImplementedException();
-    }
+        var rolesMap = new Dictionary<Role, bool>
+        {
+            [Role.Admin] = true, // TODO
+            [Role.Voter] = select.CitizenId is not null, // TODO
+            [Role.Police] = select.PoliceOfficerId is not null,
+            // TODO: Handle checking for if they are their role in a current election.
+            [Role.BoardPresident] = select.PollingStationPresidentId is not null,
+            [Role.BoardSecretary] = select.PollingStationSecretaryId is not null,
+            [Role.BoardVocal] = select.PollingStationVocalId is not null,
+        };
 
-    [HttpPost]
-    [Route("police_officer/login")]
-    public async Task<AuthResponse<PoliceOfficer>> PoliceOfficerLogin(
-        PollingStationMember citizen
-    )
-    {
-        throw new NotImplementedException();
+        var roles = rolesMap.Where(kv => kv.Value).Select(kv => kv.Key).ToImmutableList();
+
+        var token = jwt.GenerateJwtToken(
+            $"{select.Name} {select.Surname}",
+            new Ulid(select.CitizenId).ToString(),
+            roles
+        );
+
+        return new AuthResponse<FullCitizen>
+        {
+            JwtToken = token,
+            Roles = roles,
+            CitizenId = new Ulid(select.CitizenId),
+            User = new FullCitizen
+            {
+                BirthDate = DateOnly.FromDateTime(select.Birth),
+                CredencialCivica = select.CredencialCivica,
+                Name = select.Name,
+                Surname = select.Surname,
+                UruguayanId = select.UruguayanId,
+            },
+        };
     }
+}
+
+public record LoginCredentials : BaseCitizen
+{
+    [Required]
+    public required string Password { get; set; }
 }
 
 public record AuthResponse<T>
@@ -51,5 +76,11 @@ public record AuthResponse<T>
     public required string JwtToken { get; set; }
 
     [Required]
-    public required T Content { get; set; }
+    public required IEnumerable<Role> Roles { get; set; }
+
+    [Required]
+    public required Ulid CitizenId { get; set; }
+
+    [Required]
+    public required T User { get; set; }
 }

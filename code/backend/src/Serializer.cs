@@ -14,11 +14,7 @@ public class UlidJsonConverter : JsonConverter<Ulid>
         return Ulid.Parse(reader.GetString());
     }
 
-    public override void Write(
-        Utf8JsonWriter writer,
-        Ulid value,
-        JsonSerializerOptions options
-    )
+    public override void Write(Utf8JsonWriter writer, Ulid value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.ToString());
     }

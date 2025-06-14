@@ -101,7 +101,7 @@ public class Election
 
 public class PollingDistrict
 {
-    public required byte[] PollingDistrictNumber { get; init; }
+    public required int PollingDistrictNumber { get; init; }
     public required bool IsOpen { get; init; }
     public required byte[] EstablishmentId { get; init; }
 };
@@ -162,7 +162,7 @@ public class BooleanBallot
 public class ListBallot
 {
     public required byte[] ListBallotId { get; init; }
-    public required byte[] ListNumber { get; init; }
+    public required int ListNumber { get; init; }
 };
 
 public class Candidate
@@ -174,7 +174,7 @@ public class ListBallotHasCandidate
 {
     public byte[]? ListBallotId { get; init; }
     public byte[]? CandidateId { get; init; }
-    public required byte[] IndexInList { get; init; }
+    public required int IndexInList { get; init; }
     public required ListBallotHasCandidateOrg Org { get; init; }
 };
 
@@ -235,14 +235,16 @@ public enum LocalityType
 
 public static class LocalityTypeExtensions
 {
-    private static readonly Dictionary<LocalityType, string> EnumToString =
-        new Dictionary<LocalityType, string>()
-        {
-            [LocalityType.Invalid] = string.Empty,
-            [LocalityType.City] = "city",
-            [LocalityType.Town] = "town",
-            [LocalityType.Other] = "other",
-        };
+    private static readonly Dictionary<LocalityType, string> EnumToString = new Dictionary<
+        LocalityType,
+        string
+    >()
+    {
+        [LocalityType.Invalid] = string.Empty,
+        [LocalityType.City] = "city",
+        [LocalityType.Town] = "town",
+        [LocalityType.Other] = "other",
+    };
 
     public static string ToEnumString(this LocalityType me)
     {
@@ -260,14 +262,16 @@ public enum VoteState
 
 public static class VoteStateExtensions
 {
-    private static readonly Dictionary<VoteState, string> EnumToString =
-        new Dictionary<VoteState, string>()
-        {
-            [VoteState.Invalid] = string.Empty,
-            [VoteState.Valid] = "valid",
-            [VoteState.OutOfDistrict] = "out_of_district",
-            [VoteState.ApprovedOutOfDistrict] = "approved_out_of_district",
-        };
+    private static readonly Dictionary<VoteState, string> EnumToString = new Dictionary<
+        VoteState,
+        string
+    >()
+    {
+        [VoteState.Invalid] = string.Empty,
+        [VoteState.Valid] = "valid",
+        [VoteState.OutOfDistrict] = "out_of_district",
+        [VoteState.ApprovedOutOfDistrict] = "approved_out_of_district",
+    };
 
     public static string ToEnumString(this VoteState me)
     {
@@ -287,18 +291,16 @@ public enum ListBallotHasCandidateOrg
 
 public static class ListBallotHasCandidateOrgExtensions
 {
-    private static readonly Dictionary<
-        ListBallotHasCandidateOrg,
-        string
-    > EnumToString = new Dictionary<ListBallotHasCandidateOrg, string>()
-    {
-        [ListBallotHasCandidateOrg.Invalid] = string.Empty,
-        [ListBallotHasCandidateOrg.Deputy] = "deputy",
-        [ListBallotHasCandidateOrg.Senator] = "senator",
-        [ListBallotHasCandidateOrg.DepartmentalBoard] = "departmental_board",
-        [ListBallotHasCandidateOrg.MunicipalCouncilor] = "municipal_councilor",
-        [ListBallotHasCandidateOrg.MainCandidate] = "main_candidate",
-    };
+    private static readonly Dictionary<ListBallotHasCandidateOrg, string> EnumToString =
+        new Dictionary<ListBallotHasCandidateOrg, string>()
+        {
+            [ListBallotHasCandidateOrg.Invalid] = string.Empty,
+            [ListBallotHasCandidateOrg.Deputy] = "deputy",
+            [ListBallotHasCandidateOrg.Senator] = "senator",
+            [ListBallotHasCandidateOrg.DepartmentalBoard] = "departmental_board",
+            [ListBallotHasCandidateOrg.MunicipalCouncilor] = "municipal_councilor",
+            [ListBallotHasCandidateOrg.MainCandidate] = "main_candidate",
+        };
 
     public static string ToEnumString(this ListBallotHasCandidateOrg me)
     {
@@ -315,10 +317,10 @@ public enum PartyHasCitizenRole
 
 public static class PartyHasCitizenRoleExtensions
 {
-    private static readonly Dictionary<
+    private static readonly Dictionary<PartyHasCitizenRole, string> EnumToString = new Dictionary<
         PartyHasCitizenRole,
         string
-    > EnumToString = new Dictionary<PartyHasCitizenRole, string>()
+    >()
     {
         [PartyHasCitizenRole.Invalid] = string.Empty,
         [PartyHasCitizenRole.President] = "president",

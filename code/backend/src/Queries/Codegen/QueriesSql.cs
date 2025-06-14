@@ -47,10 +47,7 @@ public partial class QueriesSql
             var queryParams = new Dictionary<string, object?>();
             queryParams.Add("citizen_id", args.CitizenId);
             queryParams.Add("election_id", args.ElectionId);
-            queryParams.Add(
-                "polling_district_number",
-                args.PollingDistrictNumber
-            );
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
             await connection.ExecuteAsync(
                 InsertCitizenVoteInPollingDistrictElectionSql,
                 queryParams
@@ -118,6 +115,78 @@ public partial class QueriesSql
         }
     }
 
+    public const string SelectCitizenSql =
+        "SELECT citizen_id, credencial_civica, uruguayan_id, name, surname, birth, password_hash FROM  citizen  WHERE  citizen_id  =  @citizen_id ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class SelectCitizenRow
+    {
+        public required byte[] CitizenId { get; init; }
+        public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
+        public required string Name { get; init; }
+        public required string Surname { get; init; }
+        public required DateTime Birth { get; init; }
+        public required string PasswordHash { get; init; }
+    };
+
+    public partial class SelectCitizenArgs
+    {
+        public required byte[] CitizenId { get; init; }
+    };
+
+    public async Task<SelectCitizenRow?> SelectCitizen(SelectCitizenArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            var result = await connection.QueryFirstOrDefaultAsync<SelectCitizenRow?>(
+                SelectCitizenSql,
+                queryParams
+            );
+            return result;
+        }
+    }
+
+    public const string LoginCitizenSql =
+        "SELECT c.citizen_id, c.credencial_civica, c.uruguayan_id, c.name, c.surname, c.birth, c.password_hash, po . police_officer_id, psp . polling_station_president_id, psv . polling_station_vocal_id, pss . polling_station_secretary_id  FROM  citizen  c  LEFT  JOIN  police_officer  po  ON  po . police_officer_id  =  c . citizen_id  LEFT  JOIN  polling_station_president  psp  ON  psp . polling_station_president_id  =  c . citizen_id  LEFT  JOIN  polling_station_vocal  psv  ON  psv . polling_station_vocal_id  =  c . citizen_id  LEFT  JOIN  polling_station_secretary  pss  ON  pss . polling_station_secretary_id  =  c . citizen_id  WHERE  c . credencial_civica  =  @credencial_civica  AND  c . uruguayan_id  =  @uruguayan_id; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class LoginCitizenRow
+    {
+        public required byte[] CitizenId { get; init; }
+        public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
+        public required string Name { get; init; }
+        public required string Surname { get; init; }
+        public required DateTime Birth { get; init; }
+        public required string PasswordHash { get; init; }
+        public byte[]? PoliceOfficerId { get; init; }
+        public byte[]? PollingStationPresidentId { get; init; }
+        public byte[]? PollingStationVocalId { get; init; }
+        public byte[]? PollingStationSecretaryId { get; init; }
+    };
+
+    public partial class LoginCitizenArgs
+    {
+        public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
+    };
+
+    public async Task<LoginCitizenRow?> LoginCitizen(LoginCitizenArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("credencial_civica", args.CredencialCivica);
+            queryParams.Add("uruguayan_id", args.UruguayanId);
+            var result = await connection.QueryFirstOrDefaultAsync<LoginCitizenRow?>(
+                LoginCitizenSql,
+                queryParams
+            );
+            return result;
+        }
+    }
+
     public const string InsertVoteSql =
         "INSERT INTO  vote ( vote_id , state ) VALUES ( @vote_id, @state ); SELECT  LAST_INSERT_ID ( ) ";
 
@@ -158,29 +227,45 @@ public partial class QueriesSql
         }
     }
 
-    public const string GetCitizenSql =
-        "SELECT citizen_id, credencial_civica, uruguayan_id, name, surname, birth, password_hash FROM  citizen ; SELECT  LAST_INSERT_ID ( ) ";
+    public const string GetElectionsForCitizenSql =
+        "SELECT e.election_id, e.description, e.date, e.is_open, b . election_id  AS  'ballotage_id', pl . election_id  AS  'pleibiscite_id', r . election_id  AS  'referndum_id', pr . election_id  AS  'presidential_id', m . election_id  AS  'municipal_id', department_id FROM  election  e  INNER  JOIN  citizen_assigned_int_polling_district_election  caipde  ON  e . election_id  =  caipde . election_id  AND  caipde . citizen_id  =  @citizen_id  LEFT  JOIN  ballotage  b  ON  e . election_id  =  b . election_id  LEFT  JOIN  pleibiscite  pl  ON  e . election_id  =  pl . election_id  LEFT  JOIN  referndum  r  ON  e . election_id  =  r . election_id  LEFT  JOIN  presidential  pr  ON  e . election_id  =  pr . election_id  LEFT  JOIN  municipal  m  ON  e . election_id  =  m . election_id  LEFT  JOIN  locality  l  ON  l . locality_id  =  m . locality_id  WHERE ( @start_date <= e . date ) AND ( @end_date >= e . date ) ; SELECT  LAST_INSERT_ID ( ) ";
 
-    public partial class GetCitizenRow
+    public partial class GetElectionsForCitizenRow
     {
-        public required byte[] CitizenId { get; init; }
-        public required string CredencialCivica { get; init; }
-        public required int UruguayanId { get; init; }
-        public required string Name { get; init; }
-        public required string Surname { get; init; }
-        public required DateTime Birth { get; init; }
-        public required string PasswordHash { get; init; }
+        public required byte[] ElectionId { get; init; }
+        public required string Description { get; init; }
+        public required DateTime Date { get; init; }
+        public required bool IsOpen { get; init; }
+        public byte[]? BallotageId { get; init; }
+        public byte[]? PleibisciteId { get; init; }
+        public byte[]? ReferndumId { get; init; }
+        public byte[]? PresidentialId { get; init; }
+        public byte[]? MunicipalId { get; init; }
+        public byte[]? DepartmentId { get; init; }
     };
 
-    public async Task<GetCitizenRow?> GetCitizen()
+    public partial class GetElectionsForCitizenArgs
+    {
+        public required byte[] CitizenId { get; init; }
+        public required DateTime StartDate { get; init; }
+        public required DateTime EndDate { get; init; }
+    };
+
+    public async Task<List<GetElectionsForCitizenRow>> GetElectionsForCitizen(
+        GetElectionsForCitizenArgs args
+    )
     {
         using (var connection = new MySqlConnection(ConnectionString))
         {
-            var result =
-                await connection.QueryFirstOrDefaultAsync<GetCitizenRow?>(
-                    GetCitizenSql
-                );
-            return result;
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            queryParams.Add("start_date", args.StartDate);
+            queryParams.Add("end_date", args.EndDate);
+            var result = await connection.QueryAsync<GetElectionsForCitizenRow>(
+                GetElectionsForCitizenSql,
+                queryParams
+            );
+            return result.AsList();
         }
     }
 }

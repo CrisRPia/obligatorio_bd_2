@@ -3,41 +3,34 @@ using Bogus;
 
 namespace backend.src.Services;
 
-public class FakeService()
+public interface IFakeService
 {
-    private static readonly Lazy<FakeService> instance = new(() =>
-        new FakeService()
-    );
-    public static FakeService Instance => instance.Value;
+    FullCitizen FakeCitizen(int? uruguayanIdWithoutIdentifier = null);
+    IEnumerable<FullCitizen> FakeCitizens(IEnumerable<int> uruguayanIdsWithoutVerifier);
+    string GenerateUniqueCredencialCivica();
+}
+
+public class FakeService() : IFakeService
+{
     public Faker Faker { get; init; } = new("es");
 
-    public FullCitizen FakeCitizen(int? uruguayanIdWithoutIdentifier)
+    public FullCitizen FakeCitizen(int? uruguayanIdWithoutIdentifier = null)
     {
-        return FakeCitizens(
-                [
-                    uruguayanIdWithoutIdentifier
-                        ?? Faker.Random.Number(100_000_00),
-                ]
-            )
+        return FakeCitizens([uruguayanIdWithoutIdentifier ?? Faker.Random.Number(100_000_00)])
             .First();
     }
 
-    public IEnumerable<FullCitizen> FakeCitizens(
-        IEnumerable<int> uruguayanIdsWithoutVerifier
-    )
+    public IEnumerable<FullCitizen> FakeCitizens(IEnumerable<int> uruguayanIdsWithoutVerifier)
     {
         return uruguayanIdsWithoutVerifier.Select(uid =>
         {
-            Console.WriteLine(uid);
-            var generatedUid =
-                uid * 10 + UruguayanIdVerifier.GetValidationDigit(uid);
+            var generatedUid = uid * 10 + UruguayanIdVerifier.GetValidationDigit(uid);
 
             return new FullCitizen
             {
                 Name = Faker.Name.FirstName(),
                 Surname = Faker.Name.LastName(),
-                UruguayanId =
-                    generatedUid ?? throw new NotImplementedException(),
+                UruguayanId = generatedUid ?? throw new NotImplementedException(),
                 CredencialCivica = GenerateUniqueCredencialCivica(),
                 BirthDate = Faker.Date.PastDateOnly(
                     refDate: DateOnly.FromDateTime(
@@ -53,9 +46,15 @@ public class FakeService()
 
     public string GenerateUniqueCredencialCivica()
     {
-        return Faker.Lorem.Letter()
-            + Faker.Lorem.Letter()
-            + Faker.Lorem.Letter()
-            + CredencialCivicaCounter++;
+        return string.Join(
+                "",
+                [
+                    Faker.Lorem.Letter(),
+                    Faker.Lorem.Letter(),
+                    Faker.Lorem.Letter(),
+                    CredencialCivicaCounter++.ToString(),
+                ]
+            )
+            .ToUpperInvariant();
     }
 }

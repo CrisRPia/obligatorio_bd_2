@@ -23,7 +23,6 @@ public static class DB
             var output = Environment.GetEnvironmentVariable(envPath);
             if (output is not string verifiedOutput)
             {
-                Console.WriteLine();
                 throw new InvalidOperationException(
                     $"You must set the {envPath} environment variable."
                 );
@@ -46,8 +45,12 @@ public static class DB
         return new QueriesSql(CreateConnectionStringFromEnv());
     }
 
-    public static MySqlConnection NewConnection() =>
-        new(CreateConnectionStringFromEnv());
+    public static MySqlConnection NewOpenConnection()
+    {
+        var output = new MySqlConnection(CreateConnectionStringFromEnv());
+        output.Open();
+        return output;
+    }
 
     public static QueriesSql Queries { get; } = CreateQueryInstance();
 }
