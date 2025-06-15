@@ -43,6 +43,9 @@ public record Election
     public required DateOnly Date { get; init; }
 
     [Required]
+    public required IReadOnlyList<Ballot> AllowedBallots { get; init; }
+
+    [Required]
     public required Ulid ElectionId { get; init; }
 
     public Ulid? DepartmentId { get; init; }

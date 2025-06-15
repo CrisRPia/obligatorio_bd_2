@@ -302,4 +302,42 @@ public partial class QueriesSql
             return result;
         }
     }
+
+    public const string GetDepartmentsSql =
+        "SELECT department_id, name FROM  department ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetDepartmentsRow
+    {
+        public required byte[] DepartmentId { get; init; }
+        public required string Name { get; init; }
+    };
+
+    public async Task<List<GetDepartmentsRow>> GetDepartments()
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var result = await connection.QueryAsync<GetDepartmentsRow>(GetDepartmentsSql);
+            return result.AsList();
+        }
+    }
+
+    public const string InsertDepartmentsSql =
+        "INSERT INTO  department ( department_id , name ) VALUES ( @department_id, @name ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertDepartmentsArgs
+    {
+        public required byte[] DepartmentId { get; init; }
+        public required string Name { get; init; }
+    };
+
+    public async Task InsertDepartments(InsertDepartmentsArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("department_id", args.DepartmentId);
+            queryParams.Add("name", args.Name);
+            await connection.ExecuteAsync(InsertDepartmentsSql, queryParams);
+        }
+    }
 }

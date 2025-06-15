@@ -83,3 +83,12 @@ SELECT e.*
 SELECT *
   FROM polling_district_in_election_has_polling_station pdiehps
  WHERE pdiehps.polling_station_president_id = ?;
+
+-- name: GetDepartments :many
+SELECT *
+  FROM department;
+
+-- name: InsertDepartment :exec
+INSERT
+  INTO department (department_id, name)
+VALUES (?, ?);

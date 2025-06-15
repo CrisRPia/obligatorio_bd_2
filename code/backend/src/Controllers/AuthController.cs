@@ -14,6 +14,7 @@ namespace backend.src.Controllers;
 public class AuthController(IJwtService jwt) : Controller
 {
     [Route("")]
+    [HttpPost]
     public async Task<AuthResponse<FullCitizen>> Login(LoginCredentials citizen)
     {
         var select = await DB.Queries.LoginCitizen(

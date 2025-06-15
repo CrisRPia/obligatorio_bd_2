@@ -40,6 +40,8 @@ public class ElectionController : Controller
             {
                 Date = DateOnly.FromDateTime(e.Date),
                 DepartmentId = e.DepartmentId is not null ? new Ulid(e.DepartmentId) : null,
+                // TODO: Get allowed ballots.
+                AllowedBallots = [],
                 // TODO: Get result information
                 Result = null,
                 ElectionId = new Ulid(e.ElectionId),
@@ -82,7 +84,7 @@ public record Filters
     public Ulid? DepartmentId { get; init; }
     public ElectionState? OnlyOpenOrClosed { get; init; }
 
-    [Description("Do not specify to set to all.")]
+    [Description("Do not specify (or empty) to set to all.")]
     public IReadOnlyList<ElectionType> RestrictToTypes { get; init; } = [];
     public string? SearchTerm { get; init; }
     public bool? HasResults { get; init; }
