@@ -13,7 +13,6 @@ namespace backend.src.Controllers;
 [Route("auth/")]
 public class AuthController(IJwtService jwt) : Controller
 {
-    [HttpPost]
     [Route("")]
     public async Task<AuthResponse<FullCitizen>> Login(LoginCredentials citizen)
     {
@@ -42,9 +41,16 @@ public class AuthController(IJwtService jwt) : Controller
         var roles = rolesMap.Where(kv => kv.Value).Select(kv => kv.Key).ToImmutableList();
 
         var token = jwt.GenerateJwtToken(
-            $"{select.Name} {select.Surname}",
-            new Ulid(select.CitizenId).ToString(),
-            roles
+            new()
+            {
+                Username = $"{select.Name} {select.Surname}",
+                UserId = new Ulid(select.CitizenId).ToString(),
+                Roles = roles,
+                TokenId = null,
+                CircuitId = roles.Contains(Role.BoardPresident)
+                    ? new Ulid(select.PollingDistrictNumber)
+                    : null,
+            }
         );
 
         return new AuthResponse<FullCitizen>

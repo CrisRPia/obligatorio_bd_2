@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFakeService, FakeService>();
 builder.Services.AddScoped<ICitizenService, CitizenService>();
+builder.Services.AddScoped<ICitizenCacheService, CitizenCacheService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

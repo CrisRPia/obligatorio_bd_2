@@ -31,11 +31,14 @@ SELECT c.*
      , psp.polling_station_president_id
      , psv.polling_station_vocal_id
      , pss.polling_station_secretary_id
+     , pdiehps.polling_district_number
   FROM citizen c
            LEFT JOIN police_officer po ON po.police_officer_id = c.citizen_id
            LEFT JOIN polling_station_president psp ON psp.polling_station_president_id = c.citizen_id
            LEFT JOIN polling_station_vocal psv ON psv.polling_station_vocal_id = c.citizen_id
            LEFT JOIN polling_station_secretary pss ON pss.polling_station_secretary_id = c.citizen_id
+           LEFT JOIN polling_district_in_election_has_polling_station pdiehps
+                     ON pdiehps.polling_station_president_id = c.citizen_id
  WHERE c.credencial_civica = ?
    AND c.uruguayan_id = ?;
 
@@ -75,3 +78,8 @@ SELECT e.*
            LEFT JOIN locality l ON l.locality_id = m.locality_id
  WHERE (sqlc.arg(start_date) <= e.date)
    AND (sqlc.arg(end_date) >= e.date);
+
+-- name: GetPollingStationDistrict :one
+SELECT *
+  FROM polling_district_in_election_has_polling_station pdiehps
+ WHERE pdiehps.polling_station_president_id = ?;

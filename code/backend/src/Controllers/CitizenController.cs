@@ -1,22 +1,24 @@
-using backend.src.Attributes;
 using backend.src.Models;
 using backend.src.Queries;
 using backend.src.Queries.Codegen;
 using backend.src.Services;
-using Dapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.src.Controllers;
 
 [ApiController]
 [Route("citizen/")]
-public class CitizenController : Controller
+public class CitizenController(ICitizenCacheService CitizenCache) : Controller
 {
     [HttpPost]
-    [SafeAuthorize(roles: [Role.Voter])]
-    [Route("{citizenId}/vote/{circuitId}/")]
-    public async Task<DefaultOk> Vote(Ulid citizenId, Ulid circuitId, Ballots votes)
+    [Route("{citizenId}/vote/")]
+    public async Task<BooleanReturn> Vote(Ulid citizenId, Ballots votes)
     {
+        if (CitizenCache.GetCitizenCircuit(citizenId) is not Ulid circuitId)
+        {
+            return BooleanReturn.False;
+        }
+
         using var connection = DB.NewOpenConnection();
         using var transaction = await connection.BeginTransactionAsync();
         try
@@ -51,6 +53,6 @@ public class CitizenController : Controller
             throw;
         }
 
-        return DefaultOk.Instance;
+        return BooleanReturn.True;
     }
 }

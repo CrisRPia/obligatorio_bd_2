@@ -18,4 +18,4 @@ sed -i '' 's/private const string /public const string /g' \
     "$script_dir/../src/Queries/Codegen/QueriesSql.cs"
 
 # Format
-dotnet csharpier format "$proyect_root"
+dotnet csharpier format "$proyect_root/src/Queries/Codegen"

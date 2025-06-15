@@ -149,7 +149,7 @@ public partial class QueriesSql
     }
 
     public const string LoginCitizenSql =
-        "SELECT c.citizen_id, c.credencial_civica, c.uruguayan_id, c.name, c.surname, c.birth, c.password_hash, po . police_officer_id, psp . polling_station_president_id, psv . polling_station_vocal_id, pss . polling_station_secretary_id  FROM  citizen  c  LEFT  JOIN  police_officer  po  ON  po . police_officer_id  =  c . citizen_id  LEFT  JOIN  polling_station_president  psp  ON  psp . polling_station_president_id  =  c . citizen_id  LEFT  JOIN  polling_station_vocal  psv  ON  psv . polling_station_vocal_id  =  c . citizen_id  LEFT  JOIN  polling_station_secretary  pss  ON  pss . polling_station_secretary_id  =  c . citizen_id  WHERE  c . credencial_civica  =  @credencial_civica  AND  c . uruguayan_id  =  @uruguayan_id; SELECT  LAST_INSERT_ID ( ) ";
+        "SELECT c.citizen_id, c.credencial_civica, c.uruguayan_id, c.name, c.surname, c.birth, c.password_hash, po . police_officer_id, psp . polling_station_president_id, psv . polling_station_vocal_id, pss . polling_station_secretary_id, pdiehps . polling_district_number  FROM  citizen  c  LEFT  JOIN  police_officer  po  ON  po . police_officer_id  =  c . citizen_id  LEFT  JOIN  polling_station_president  psp  ON  psp . polling_station_president_id  =  c . citizen_id  LEFT  JOIN  polling_station_vocal  psv  ON  psv . polling_station_vocal_id  =  c . citizen_id  LEFT  JOIN  polling_station_secretary  pss  ON  pss . polling_station_secretary_id  =  c . citizen_id  LEFT  JOIN  polling_district_in_election_has_polling_station  pdiehps  ON  pdiehps . polling_station_president_id  =  c . citizen_id  WHERE  c . credencial_civica  =  @credencial_civica  AND  c . uruguayan_id  =  @uruguayan_id; SELECT  LAST_INSERT_ID ( ) ";
 
     public partial class LoginCitizenRow
     {
@@ -164,6 +164,7 @@ public partial class QueriesSql
         public byte[]? PollingStationPresidentId { get; init; }
         public byte[]? PollingStationVocalId { get; init; }
         public byte[]? PollingStationSecretaryId { get; init; }
+        public byte[]? PollingDistrictNumber { get; init; }
     };
 
     public partial class LoginCitizenArgs
@@ -266,6 +267,39 @@ public partial class QueriesSql
                 queryParams
             );
             return result.AsList();
+        }
+    }
+
+    public const string GetPollingStationDistrictSql =
+        "SELECT polling_station_president_id, polling_station_secretary_id, polling_station_vocal_id, polling_district_number, election_id FROM  polling_district_in_election_has_polling_station  pdiehps  WHERE  pdiehps . polling_station_president_id  =  @polling_station_president_id ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetPollingStationDistrictRow
+    {
+        public required byte[] PollingStationPresidentId { get; init; }
+        public required byte[] PollingStationSecretaryId { get; init; }
+        public required byte[] PollingStationVocalId { get; init; }
+        public required byte[] PollingDistrictNumber { get; init; }
+        public required byte[] ElectionId { get; init; }
+    };
+
+    public partial class GetPollingStationDistrictArgs
+    {
+        public required byte[] PollingStationPresidentId { get; init; }
+    };
+
+    public async Task<GetPollingStationDistrictRow?> GetPollingStationDistrict(
+        GetPollingStationDistrictArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("polling_station_president_id", args.PollingStationPresidentId);
+            var result = await connection.QueryFirstOrDefaultAsync<GetPollingStationDistrictRow?>(
+                GetPollingStationDistrictSql,
+                queryParams
+            );
+            return result;
         }
     }
 }
