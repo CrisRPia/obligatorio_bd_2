@@ -56,6 +56,7 @@ builder
     .AddJwtBearer(options =>
     {
         var helper = new JwtService(builder.Configuration);
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

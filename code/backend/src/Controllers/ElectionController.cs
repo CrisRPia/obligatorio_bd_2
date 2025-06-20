@@ -13,6 +13,7 @@ public class ElectionController : Controller
     [Route("")]
     public async Task<ListModel<Election>> GetElections([FromQuery] Filters filters)
     {
+        // Get elections
         IEnumerable<Queries.Codegen.QueriesSql.GetElectionsForCitizenRow> result =
             await DB.Queries.GetElectionsForCitizen(
                 new()
@@ -24,6 +25,7 @@ public class ElectionController : Controller
                 }
             );
 
+        // Filter by optional filters.
         if (filters.SearchTerm is not null)
         {
             result = result.Where(e => e.Description.Contains(filters.SearchTerm));
@@ -40,7 +42,7 @@ public class ElectionController : Controller
             {
                 Date = DateOnly.FromDateTime(e.Date),
                 DepartmentId = e.DepartmentId is not null ? new Ulid(e.DepartmentId) : null,
-                // TODO: Get allowed ballots.
+                // Allowed ballots are calculated later on.
                 AllowedBallots = [],
                 // TODO: Get result information
                 Result = null,
@@ -51,7 +53,7 @@ public class ElectionController : Controller
                     { MunicipalId: byte[] } => ElectionType.MunicipalElection,
                     { PresidentialId: byte[] } => ElectionType.Presidential,
                     { PleibisciteId: byte[] } => ElectionType.Plebiscite,
-                    { ReferndumId: byte[] } => ElectionType.Referendum,
+                    { ReferendumId: byte[] } => ElectionType.Referendum,
                     _ => throw new InvalidOperationException(),
                 },
             };
@@ -66,6 +68,28 @@ public class ElectionController : Controller
         {
             parsedResults = parsedResults.Where(e => e.DepartmentId == filters.DepartmentId);
         }
+
+        // After being done with all filtering, make a second query to fetch the elections.
+        var rows = await DB.Queries.GetBallotsForElections(
+            new() { Elections = parsedResults.Select(r => r.ElectionId.ToByteArray()).ToArray() }
+        );
+
+        parsedResults = parsedResults.Select(result =>
+            result with
+            {
+                AllowedBallots = rows.Where(row =>
+                        row.ElectionId == result.ElectionId.ToByteArray()
+                    )
+                    .Select(row => new Ballot()
+                    {
+                        ListNumber = row.ListNumber,
+                        IsYes = row.Value,
+                        ElectionId = result.ElectionId,
+                        BallotId = new Ulid(row.BallotId),
+                    })
+                    .ToArray(),
+            }
+        );
 
         return new() { Items = parsedResults.ToList() };
     }

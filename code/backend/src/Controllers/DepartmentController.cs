@@ -58,7 +58,7 @@ public class DepartmentController : Controller
 
         foreach (var department in departments)
         {
-            await DB.Queries.InsertDepartments(
+            await DB.Queries.InsertDepartment(
                 new()
                 {
                     DepartmentId = department.DepartmentId.ToByteArray(),

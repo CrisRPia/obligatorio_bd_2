@@ -9,7 +9,7 @@ public record VoteService
 {
     public required Ballots Ballots { get; init; }
     public required Ulid CitizenId { get; init; }
-    public required Ulid CircuitId { get; init; }
+    public required CircuitId CircuitId { get; init; }
 
     public IEnumerable<MySqlBatchCommand> VotesTransaction(bool isObserved)
     {
@@ -29,7 +29,8 @@ public record VoteService
             {
                 CitizenId = CitizenId.ToByteArray(),
                 ElectionId = vote.ElectionId.ToByteArray(),
-                PollingDistrictNumber = CircuitId.ToByteArray(),
+                PollingDistrictNumber = CircuitId.CircuitNumber,
+                EstablishmentId = CircuitId.EstablishmentId.ToByteArray(),
             }
         );
 

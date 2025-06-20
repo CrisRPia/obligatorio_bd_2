@@ -28,6 +28,7 @@ public class FakeService() : IFakeService
 
             return new FullCitizen
             {
+                CitizenId = Ulid.NewUlid(),
                 Name = Faker.Name.FirstName(),
                 Surname = Faker.Name.LastName(),
                 UruguayanId = generatedUid ?? throw new NotImplementedException(),

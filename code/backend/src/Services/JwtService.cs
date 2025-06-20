@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using backend.src.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Extensions;
 
@@ -9,9 +10,9 @@ namespace backend.src.Services;
 public record EmbeddedJwtData
 {
     public required string Username { get; init; }
-    public required string UserId { get; init; }
-    public required string? TokenId { get; init; }
-    public Ulid? CircuitId { get; init; }
+    public required Ulid UserId { get; init; }
+    public required Ulid? TokenId { get; init; }
+    public CircuitId? CircuitId { get; init; }
     public required IEnumerable<Role> Roles { get; init; }
 }
 
@@ -20,13 +21,12 @@ public interface IJwtService
     SecurityKey Key { get; }
     string Issuer { get; }
     string Audience { get; }
-    EmbeddedJwtData? GetData(IHttpContextAccessor httpContextAccessor);
+    EmbeddedJwtData? GetData(HttpContext httpContext);
 
     string GenerateJwtToken(EmbeddedJwtData data);
 }
 
-public class JwtService(IConfiguration configuration)
-    : IJwtService
+public class JwtService(IConfiguration configuration) : IJwtService
 {
     private IConfiguration Configuration { get; init; } = configuration;
     private IConfigurationSection Section => Configuration.GetSection("Jwt");
@@ -39,13 +39,14 @@ public class JwtService(IConfiguration configuration)
         List<Claim> claims =
         [
             new(JwtRegisteredClaimNames.Name, data.Username),
-            new(JwtRegisteredClaimNames.Sub, data.UserId),
-            new(JwtRegisteredClaimNames.Jti, data.TokenId ?? Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Sub, data.UserId.ToString()),
+            new(JwtRegisteredClaimNames.Jti, data.TokenId.ToString() ?? Ulid.NewUlid().ToString()),
         ];
 
-        if (data.CircuitId is Ulid content)
+        if (data.CircuitId is CircuitId content)
         {
-            claims.Add(new(nameof(data.CircuitId), content.ToString()));
+            claims.Add(new(nameof(content.EstablishmentId), content.EstablishmentId.ToString()));
+            claims.Add(new(nameof(content.CircuitNumber), content.CircuitNumber.ToString()));
         }
 
         foreach (var role in data.Roles)
@@ -58,7 +59,7 @@ public class JwtService(IConfiguration configuration)
                 Subject = new ClaimsIdentity(claims, "jwt"),
                 Issuer = Issuer,
                 Audience = Audience,
-                Expires = DateTime.UtcNow.AddMinutes(30),
+                Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials(Key, SecurityAlgorithms.HmacSha512),
             }
         );
@@ -66,40 +67,43 @@ public class JwtService(IConfiguration configuration)
         return tokenHandler.WriteToken(securityToken);
     }
 
-    public EmbeddedJwtData? GetData(IHttpContextAccessor httpContextAccessor)
+    public EmbeddedJwtData? GetData(HttpContext httpContextAccessor)
     {
-        var user = httpContextAccessor.HttpContext?.User;
+        var user = httpContextAccessor.User;
 
-        if (user?.Identity?.IsAuthenticated != true)
+        if (user.Identity?.IsAuthenticated != true)
         {
             return null;
         }
 
         var roles = user.FindAll(ClaimTypes.Role).Select(c => Enum.Parse<Role>(c.Value)).ToList();
 
-        try
+        return new()
         {
-            return new()
-            {
-                Roles = roles,
-                Username =
-                    user.FindFirstValue(JwtRegisteredClaimNames.Name)
-                    ?? throw new InvalidOperationException(),
-                UserId =
-                    user.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                    ?? throw new InvalidOperationException(),
-                TokenId =
-                    user.FindFirstValue(JwtRegisteredClaimNames.Jti)
-                    ?? throw new InvalidOperationException(),
-                CircuitId = Ulid.Parse(
-                    user.FindFirstValue(nameof(EmbeddedJwtData.CircuitId))
-                        ?? throw new InvalidOperationException()
-                ),
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new SecurityTokenInvalidIssuerException("Failed to parse claims from token.", ex);
-        }
+            Roles = roles,
+            Username =
+                user.FindFirstValue(JwtRegisteredClaimNames.Name)
+                ?? throw new InvalidOperationException(),
+            UserId = Ulid.Parse(
+                user.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                    ?? throw new InvalidOperationException()
+            ),
+            TokenId = Ulid.Parse(
+                user.FindFirstValue(JwtRegisteredClaimNames.Jti)
+                    ?? throw new InvalidOperationException()
+            ),
+            // I bet you can't write uglier code than this -- CR.
+            CircuitId =
+                user.FindFirstValue(nameof(EmbeddedJwtData.CircuitId.EstablishmentId))
+                    is string establishmentId
+                && user.FindFirstValue(nameof(EmbeddedJwtData.CircuitId.CircuitNumber))
+                    is string circuitNumber
+                    ? new()
+                    {
+                        EstablishmentId = Ulid.Parse(establishmentId),
+                        CircuitNumber = int.Parse(circuitNumber),
+                    }
+                    : null,
+        };
     }
 }

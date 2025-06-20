@@ -7,3 +7,15 @@ dotnet_diagnostic.CS1998.severity = silent
 # CA1860: Avoid using 'Enumerable.Any()' extension method
 dotnet_diagnostic.CA1860.severity = none
 
+
+# CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
+dotnet_diagnostic.CS8524.severity = none
+
+
+# CA1861: Avoid constant arrays as arguments
+dotnet_diagnostic.CA1861.severity = none
+
+
+# IDE0305: Simplify collection initialization
+dotnet_style_prefer_collection_expression = never
+

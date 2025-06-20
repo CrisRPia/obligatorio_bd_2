@@ -13,6 +13,13 @@ namespace backend.src.Controllers;
 [Route("auth/")]
 public class AuthController(IJwtService jwt) : Controller
 {
+    [HttpGet]
+    [Route("JWT")]
+    public EmbeddedJwtData? GetTokenInfo()
+    {
+        return jwt.GetData(HttpContext);
+    }
+
     [Route("")]
     [HttpPost]
     public async Task<AuthResponse<FullCitizen>> Login(LoginCredentials citizen)
@@ -45,11 +52,15 @@ public class AuthController(IJwtService jwt) : Controller
             new()
             {
                 Username = $"{select.Name} {select.Surname}",
-                UserId = new Ulid(select.CitizenId).ToString(),
+                UserId = new Ulid(select.CitizenId),
                 Roles = roles,
                 TokenId = null,
-                CircuitId = roles.Contains(Role.BoardPresident)
-                    ? new Ulid(select.PollingDistrictNumber)
+                CircuitId = select.PollingDistrictNumber is int pollingDistrictNumber
+                    ? new()
+                    {
+                        EstablishmentId = new Ulid(select.EstablishmentId),
+                        CircuitNumber = pollingDistrictNumber,
+                    }
                     : null,
             }
         );
@@ -61,6 +72,7 @@ public class AuthController(IJwtService jwt) : Controller
             CitizenId = new Ulid(select.CitizenId),
             User = new FullCitizen
             {
+                CitizenId =  new Ulid(select.CitizenId),
                 BirthDate = DateOnly.FromDateTime(select.Birth),
                 CredencialCivica = select.CredencialCivica,
                 Name = select.Name,

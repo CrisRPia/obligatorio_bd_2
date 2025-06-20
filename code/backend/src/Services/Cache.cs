@@ -1,48 +1,55 @@
 using System.Collections.Concurrent;
+using backend.src.Models;
+using CitizenData = (System.Ulid id, bool allowObserved);
 
 namespace backend.src.Services;
 
 public interface ICitizenCacheService
 {
     void DisableCitizen(Ulid citizenId);
-    void EnableCitizen(Ulid citizenId, Ulid circuitId);
-    Ulid? GetCircuitsApprovedCitizen(Ulid circuitId);
-    Ulid? GetCitizenCircuit(Ulid citizenId);
+    void EnableCitizen(CitizenData citizenData, CircuitId circuitId);
+    CitizenData? GetCircuitsApprovedCitizen(CircuitId circuitId);
+    CircuitId? GetCitizenCircuit(Ulid citizenId);
 }
 
 public class CitizenCacheService : ICitizenCacheService
 {
-    private readonly ConcurrentDictionary<Ulid, Ulid> _circuitToCitizenCache = new();
-    private readonly ConcurrentDictionary<Ulid, Ulid> _citizenToCircuitCache = new();
+    private object Lock { get; init; } = new();
+    private readonly ConcurrentDictionary<CircuitId, CitizenData> _circuitToCitizenCache = new();
+    private readonly ConcurrentDictionary<Ulid, CircuitId> _citizenToCircuitCache = new();
 
-    public void EnableCitizen(Ulid citizenId, Ulid circuitId)
+    public void EnableCitizen(CitizenData citizenData, CircuitId circuitId)
     {
-        if (_citizenToCircuitCache.TryGetValue(citizenId, out var oldCircuitId))
+        lock (Lock)
         {
-            _circuitToCitizenCache.TryRemove(oldCircuitId, out _);
-        }
+            if (_citizenToCircuitCache.TryGetValue(citizenData.id, out var oldCircuitId))
+            {
+                _circuitToCitizenCache.TryRemove(oldCircuitId, out _);
+            }
 
-        _citizenToCircuitCache[citizenId] = circuitId;
-        _circuitToCitizenCache[circuitId] = citizenId;
+            _citizenToCircuitCache[citizenData.id] = circuitId;
+            _circuitToCitizenCache[circuitId] = citizenData;
+        }
     }
 
     public void DisableCitizen(Ulid citizenId)
     {
-        // Atomically remove from the first cache while getting the value
-        if (_citizenToCircuitCache.TryRemove(citizenId, out Ulid circuitId))
+        lock (Lock)
         {
-            // Then remove the corresponding entry from the second cache
-            _circuitToCitizenCache.TryRemove(circuitId, out _);
+            if (_citizenToCircuitCache.TryRemove(citizenId, out var circuitId))
+            {
+                _circuitToCitizenCache.TryRemove(circuitId, out _);
+            }
         }
     }
 
-    public Ulid? GetCitizenCircuit(Ulid citizenId)
+    public CircuitId? GetCitizenCircuit(Ulid citizenId)
     {
-        return _citizenToCircuitCache.TryGetValue(citizenId, out Ulid circuitId) ? circuitId : null;
+        return _citizenToCircuitCache.TryGetValue(citizenId, out var circuitId) ? circuitId : null;
     }
 
-    public Ulid? GetCircuitsApprovedCitizen(Ulid circuitId)
+    public CitizenData? GetCircuitsApprovedCitizen(CircuitId circuitId)
     {
-        return _circuitToCitizenCache.TryGetValue(circuitId, out Ulid citizenId) ? citizenId : null;
+        return _circuitToCitizenCache.TryGetValue(circuitId, out var citizenId) ? citizenId : null;
     }
 }

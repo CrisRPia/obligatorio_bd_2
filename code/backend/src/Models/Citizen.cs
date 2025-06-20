@@ -29,4 +29,7 @@ public record FullCitizen : BaseCitizen
 
     [Required]
     public required string Surname { get; init; }
+
+    [Required]
+    public required Ulid CitizenId { get; init; }
 }

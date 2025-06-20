@@ -9,4 +9,7 @@ public record Party
 
     [Required]
     public required Ulid PartyId { get; init; }
+
+    [Required]
+    public required IReadOnlyList<BaseCitizen> Citizens { get; init; }
 }

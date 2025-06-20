@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using backend.src.Attributes;
 using backend.src.Models;
 using backend.src.Queries;
 using backend.src.Queries.Codegen;
@@ -14,7 +16,7 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
     [Route("{citizenId}/vote/")]
     public async Task<BooleanReturn> Vote(Ulid citizenId, Ballots votes)
     {
-        if (CitizenCache.GetCitizenCircuit(citizenId) is not Ulid circuitId)
+        if (CitizenCache.GetCitizenCircuit(citizenId) is not CircuitId circuitId)
         {
             return BooleanReturn.False;
         }
@@ -28,7 +30,7 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
             );
 
             var isObserved = userAssignmentResult
-                .Select((r) => Ulid.Parse(r.PollingDistrictNumber))
+                .Select((r) => new CircuitId { EstablishmentId = new Ulid(r.EstablishmentId), CircuitNumber = r.PollingDistrictNumber })
                 .Contains(circuitId);
 
             var batchCommands = new VoteService
@@ -54,5 +56,28 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
         }
 
         return BooleanReturn.True;
+    }
+
+    [HttpGet]
+    [SafeAuthorize([Role.BoardPresident])]
+    public async Task<Option<FullCitizen>> GetCitizen([CredencialCivica, Required, FromQuery] string credencialCivica) {
+        var row = await DB.Queries.GetCitizenByCredencialCivica(new() {
+                CredencialCivica = credencialCivica
+        });
+
+        if (row is null) {
+            return new() {};
+        }
+
+        return new() {
+            Value = new() {
+                UruguayanId = row.UruguayanId,
+                Surname = row.Surname,
+                Name = row.Name,
+                CredencialCivica = row.CredencialCivica,
+                BirthDate = DateOnly.FromDateTime(row.Birth),
+                CitizenId = new Ulid(row.CitizenId),
+            }
+        };
     }
 }

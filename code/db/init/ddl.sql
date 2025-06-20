@@ -86,9 +86,10 @@ CREATE TABLE IF NOT EXISTS election (
 
 -- Circuito
 CREATE TABLE IF NOT EXISTS polling_district (
-    polling_district_number INT PRIMARY KEY,
-    is_open                 BOOL       NOT NULL DEFAULT TRUE,
-    establishment_id        BINARY(16) NOT NULL REFERENCES establishment (establishment_id)
+    polling_district_number INT,
+    is_open                 BOOL       NOT NULL DEFAULT FALSE,
+    establishment_id        BINARY(16) NOT NULL REFERENCES establishment (establishment_id),
+    PRIMARY KEY (polling_district_number, establishment_id)
 );
 
 CREATE TABLE IF NOT EXISTS election_has_polling_district (
@@ -101,7 +102,8 @@ CREATE TABLE IF NOT EXISTS polling_district_in_election_has_polling_station (
     polling_station_president_id BINARY(16) NOT NULL REFERENCES polling_station_president (polling_station_president_id),
     polling_station_secretary_id BINARY(16) NOT NULL REFERENCES polling_station_secretary (polling_station_secretary_id),
     polling_station_vocal_id     BINARY(16) NOT NULL REFERENCES polling_station_vocal (polling_station_vocal_id),
-    polling_district_number      BINARY(16) NOT NULL REFERENCES polling_district (polling_district_number),
+    polling_district_number      INT        NOT NULL REFERENCES polling_district (polling_district_number),
+    establishment_id             BINARY(16) NOT NULL REFERENCES polling_district (establishment_id),
     election_id                  BINARY(16) NOT NULL REFERENCES election (election_id),
     PRIMARY KEY (polling_station_president_id, polling_district_number, election_id)
 );
@@ -109,14 +111,16 @@ CREATE TABLE IF NOT EXISTS polling_district_in_election_has_polling_station (
 CREATE TABLE IF NOT EXISTS citizen_votes_in_polling_district_election (
     citizen_id              BINARY(16) NOT NULL REFERENCES citizen (citizen_id),
     election_id             BINARY(16) NOT NULL REFERENCES election (election_id),
-    polling_district_number BINARY(16) NOT NULL REFERENCES polling_district (polling_district_number),
+    polling_district_number INT        NOT NULL REFERENCES polling_district (polling_district_number),
+    establishment_id        BINARY(16) NOT NULL REFERENCES polling_district (establishment_id),
     PRIMARY KEY (citizen_id, election_id)
 );
 
 CREATE TABLE IF NOT EXISTS citizen_assigned_int_polling_district_election (
     citizen_id              BINARY(16) NOT NULL REFERENCES citizen (citizen_id),
     election_id             BINARY(16) NOT NULL REFERENCES election (election_id),
-    polling_district_number BINARY(16) NOT NULL REFERENCES polling_district (polling_district_number),
+    polling_district_number INT        NOT NULL REFERENCES polling_district (polling_district_number),
+    establishment_id        BINARY(16) NOT NULL REFERENCES polling_district (establishment_id),
     PRIMARY KEY (citizen_id, election_id)
 );
 
@@ -147,13 +151,9 @@ CREATE TABLE IF NOT EXISTS list_ballot (
     list_number    INT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS candidate (
-    candidate_id BINARY(16) PRIMARY KEY REFERENCES citizen (citizen_id)
-);
-
 CREATE TABLE IF NOT EXISTS list_ballot_has_candidate (
     list_ballot_id BINARY(16) REFERENCES list_ballot (list_ballot_id),
-    candidate_id   BINARY(16) REFERENCES candidate (candidate_id),
+    candidate_id   BINARY(16) REFERENCES citizen (citizen_id),
     -- Starts at 0
     index_in_list  INT                                                                                       NOT NULL,
     org            ENUM ('deputy', 'senator', 'departmental_board', 'municipal_councilor', 'main_candidate') NOT NULL,
@@ -167,13 +167,13 @@ CREATE TABLE IF NOT EXISTS party (
 
 
 CREATE TABLE IF NOT EXISTS party_has_citizen (
-    list_ballot_id BINARY(16) REFERENCES list_ballot (list_ballot_id),
     party_id       BINARY(16) REFERENCES party (party_id),
+    citizen_id     BINARY(16) REFERENCES citizen (citizen_id),
     role           ENUM ('president', 'vice_president') NOT NULL,
     admission_date DATE                                 NOT NULL,
     exit_date      DATE                                 NULL,
     UNIQUE (party_id, role),
-    PRIMARY KEY (list_ballot_id, party_id, admission_date)
+    PRIMARY KEY (party_id, admission_date)
 );
 
 CREATE TABLE IF NOT EXISTS list_ballot_belongs_to_department (
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS pleibiscite (
     election_id BINARY(16) PRIMARY KEY REFERENCES election (election_id)
 );
 
-CREATE TABLE IF NOT EXISTS referndum (
+CREATE TABLE IF NOT EXISTS referendum (
     election_id BINARY(16) PRIMARY KEY REFERENCES election (election_id)
 );
 
@@ -200,4 +200,9 @@ CREATE TABLE IF NOT EXISTS municipal (
 
 CREATE TABLE IF NOT EXISTS ballotage (
     election_id BINARY(16) PRIMARY KEY REFERENCES election (election_id)
+);
+
+CREATE TABLE IF NOT EXISTS election_allows_ballots (
+    election_id BINARY(16) NOT NULL REFERENCES election (election_id),
+    ballot_id   BINARY(16) NOT NULL REFERENCES ballot (ballot_id)
 );

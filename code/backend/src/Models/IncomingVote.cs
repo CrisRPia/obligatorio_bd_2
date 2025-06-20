@@ -26,7 +26,7 @@ public record Ballot
     public required Ulid BallotId { get; init; }
 
     [Description($"Specify if vote type is {nameof(BallotType.List)}.")]
-    public int? ListId { get; init; }
+    public int? ListNumber { get; init; }
 
     [Description($"Specify if vote type is {nameof(BallotType.Boolean)}.")]
     public bool? IsYes { get; init; }

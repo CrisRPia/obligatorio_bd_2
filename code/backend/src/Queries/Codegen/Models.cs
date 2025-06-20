@@ -101,7 +101,7 @@ public class Election
 
 public class PollingDistrict
 {
-    public required int PollingDistrictNumber { get; init; }
+    public int? PollingDistrictNumber { get; init; }
     public required bool IsOpen { get; init; }
     public required byte[] EstablishmentId { get; init; }
 };
@@ -117,7 +117,8 @@ public class PollingDistrictInElectionHasPollingStation
     public required byte[] PollingStationPresidentId { get; init; }
     public required byte[] PollingStationSecretaryId { get; init; }
     public required byte[] PollingStationVocalId { get; init; }
-    public required byte[] PollingDistrictNumber { get; init; }
+    public required int PollingDistrictNumber { get; init; }
+    public required byte[] EstablishmentId { get; init; }
     public required byte[] ElectionId { get; init; }
 };
 
@@ -125,14 +126,16 @@ public class CitizenVotesInPollingDistrictElection
 {
     public required byte[] CitizenId { get; init; }
     public required byte[] ElectionId { get; init; }
-    public required byte[] PollingDistrictNumber { get; init; }
+    public required int PollingDistrictNumber { get; init; }
+    public required byte[] EstablishmentId { get; init; }
 };
 
 public class CitizenAssignedIntPollingDistrictElection
 {
     public required byte[] CitizenId { get; init; }
     public required byte[] ElectionId { get; init; }
-    public required byte[] PollingDistrictNumber { get; init; }
+    public required int PollingDistrictNumber { get; init; }
+    public required byte[] EstablishmentId { get; init; }
 };
 
 public class Vote
@@ -204,7 +207,7 @@ public class Pleibiscite
     public required byte[] ElectionId { get; init; }
 };
 
-public class Referndum
+public class Referendum
 {
     public required byte[] ElectionId { get; init; }
 };
@@ -223,6 +226,12 @@ public class Municipal
 public class Ballotage
 {
     public required byte[] ElectionId { get; init; }
+};
+
+public class ElectionAllowsBallot
+{
+    public required byte[] ElectionId { get; init; }
+    public required byte[] BallotId { get; init; }
 };
 
 public enum LocalityType

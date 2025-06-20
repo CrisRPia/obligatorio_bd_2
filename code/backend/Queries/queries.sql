@@ -1,7 +1,7 @@
 -- name: InsertCitizenVoteInPollingDistrictElection :exec
 INSERT
-  INTO citizen_votes_in_polling_district_election (citizen_id, election_id, polling_district_number)
-VALUES (?, ?, ?);
+  INTO citizen_votes_in_polling_district_election (citizen_id, election_id, polling_district_number, establishment_id)
+VALUES (?, ?, ?, ?);
 
 -- name: InsertCitizen :exec
 INSERT
@@ -9,7 +9,7 @@ INSERT
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
 -- name: SelectUserAssignment :many
-SELECT a.election_id, a.polling_district_number
+SELECT a.election_id, a.polling_district_number, a.establishment_id
   FROM citizen_assigned_int_polling_district_election a
            LEFT JOIN citizen_votes_in_polling_district_election v
                      ON v.election_id = a.election_id AND v.citizen_id = a.citizen_id AND
@@ -32,6 +32,7 @@ SELECT c.*
      , psv.polling_station_vocal_id
      , pss.polling_station_secretary_id
      , pdiehps.polling_district_number
+     , pdiehps.establishment_id
   FROM citizen c
            LEFT JOIN police_officer po ON po.police_officer_id = c.citizen_id
            LEFT JOIN polling_station_president psp ON psp.polling_station_president_id = c.citizen_id
@@ -63,7 +64,7 @@ VALUES (?, ?);
 SELECT e.*
      , b.election_id  AS 'ballotage_id'
      , pl.election_id AS 'pleibiscite_id'
-     , r.election_id  AS 'referndum_id'
+     , r.election_id  AS 'referendum_id'
      , pr.election_id AS 'presidential_id'
      , m.election_id  AS 'municipal_id'
      , department_id
@@ -72,7 +73,7 @@ SELECT e.*
                       ON e.election_id = caipde.election_id AND caipde.citizen_id = ?
            LEFT JOIN ballotage b ON e.election_id = b.election_id
            LEFT JOIN pleibiscite pl ON e.election_id = pl.election_id
-           LEFT JOIN referndum r ON e.election_id = r.election_id
+           LEFT JOIN referendum r ON e.election_id = r.election_id
            LEFT JOIN presidential pr ON e.election_id = pr.election_id
            LEFT JOIN municipal m ON e.election_id = m.election_id
            LEFT JOIN locality l ON l.locality_id = m.locality_id
@@ -92,3 +93,50 @@ SELECT *
 INSERT
   INTO department (department_id, name)
 VALUES (?, ?);
+
+-- name: UpdatePollingDistrict :exec
+UPDATE polling_district pd
+   SET pd.is_open = ?
+ WHERE pd.establishment_id = ?
+   AND pd.polling_district_number = ?;
+
+-- name: GetCitizenByCredencialCivica :one
+SELECT *
+  FROM citizen
+ WHERE credencial_civica = ?;
+
+SELECT *
+  FROM citizen;
+
+-- name: GetBallotsForElections :many
+SELECT ballot.*
+     , eab.election_id
+     , list_ballot.list_number
+     , boolean_ballot.value
+     , boolean_ballot.total_votes_with_value
+  FROM ballot
+           JOIN election_allows_ballots eab ON ballot.ballot_id = eab.ballot_id
+           LEFT JOIN list_ballot ON list_ballot_id = eab.ballot_id
+           LEFT JOIN boolean_ballot ON boolean_ballot_id = eab.ballot_id
+ WHERE eab.election_id IN (sqlc.slice(elections));
+
+-- name: InsertParty :exec
+INSERT
+  INTO party (party_id, hedquarters_adress)
+VALUES (?, ?);
+
+-- name: InsertPartyMember :exec
+INSERT
+  INTO party_has_citizen (party_id, role, admission_date, exit_date)
+VALUES (?, ?, ?, ?);
+
+-- name: AssignCandidateToListBallot :exec
+INSERT
+  INTO list_ballot_has_candidate (list_ballot_id, candidate_id, index_in_list, org)
+VALUES (?, ?, ?, ?);
+
+-- name: CreateBallot :exec
+
+-- name: CreateListBallot :exec
+
+-- name:

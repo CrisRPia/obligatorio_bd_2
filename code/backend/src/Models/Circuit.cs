@@ -3,10 +3,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace backend.src.Models;
 
+public record CircuitId {
+    public required int CircuitNumber { get; init; }
+    public required Ulid EstablishmentId { get; init; }
+}
+
 public record Circuit
 {
     [Required]
-    public required int CircuitNumber { get; init; }
+    public required CircuitId CircuitId { get; init; }
 
     [Required]
     public required Building Building { get; init; }
