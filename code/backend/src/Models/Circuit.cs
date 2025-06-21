@@ -23,6 +23,12 @@ public record Building
     public required Ulid BuildingId { get; init; }
 
     [Required]
+    public required string Name { get; init; }
+
+    [Required]
+    public required string Address { get; init; }
+
+    [Required]
     public required Zone Zone { get; init; }
 }
 
@@ -50,4 +56,7 @@ public record Locality
 
     [Required]
     public required Department Department { get; init; }
+
+    [Required]
+    public required LocalityType Type { get; init; }
 }

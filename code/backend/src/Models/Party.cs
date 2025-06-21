@@ -8,6 +8,9 @@ public record Party
     public required string HeadquartersAddress { get; init; }
 
     [Required]
+    public required string Name { get; init; }
+
+    [Required]
     public required Ulid PartyId { get; init; }
 
     [Required]

@@ -17,5 +17,15 @@ sed -i  '' 's/public class /public partial class /g' \
 sed -i '' 's/private const string /public const string /g' \
     "$script_dir/../src/Queries/Codegen/QueriesSql.cs"
 
+# Sqlc seems to bug with enums. Hotfix.
+sed -i '' 's/Role?/Role/g' \
+    "$script_dir/../src/Queries/Codegen/QueriesSql.cs"
+
+sed -i '' 's/Org?/Org/g' \
+    "$script_dir/../src/Queries/Codegen/QueriesSql.cs"
+
+sed -i '' 's/Type?/Type/g' \
+    "$script_dir/../src/Queries/Codegen/QueriesSql.cs"
+
 # Format
 dotnet csharpier format "$proyect_root/src/Queries/Codegen"

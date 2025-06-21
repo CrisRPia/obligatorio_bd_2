@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using backend.src.Attributes;
 using backend.src.Models;
 using backend.src.Queries;
@@ -13,15 +14,22 @@ namespace backend.src.Controllers;
 public class DebugController(IFakeService fake, ICitizenService citizen, IJwtService jwtService)
     : Controller
 {
+    private static int ListNumber { get; set; } = 420;
+    private static int CircuitNumber { get; set; } = 69;
+    private static Faker Faker { get; } = new Faker();
+
     [HttpPost]
-    [Route("init")]
+    [Route("fake/init")]
     public async Task<object?> Init()
     {
+        var deparments = await new DepartmentController().InitDepartments();
+        var montevideo = deparments.Where(d => d.Name == "Montevideo").First();
+
         var citizensToCreate = await Task.WhenAll(
             Enumerable.Range(0, 100).Select(async _ => await CreateCitizen())
         );
 
-        var candidates = new Queue<CitizenCreationResult>(
+        var RandomCitizenPicker = new Queue<CitizenCreationResult>(
             new Faker().Random.Shuffle(citizensToCreate)
         );
 
@@ -29,14 +37,31 @@ public class DebugController(IFakeService fake, ICitizenService citizen, IJwtSer
         {
             HeadquartersAddress = new Faker().Address.StreetAddress(),
             PartyId = Ulid.NewUlid(),
+            Name = Faker.Company.CompanyName(),
             Citizens = Enumerable
                 .Range(0, candidateCount)
-                .Select(_ => candidates.Dequeue().FakeCitizen)
+                .Select(_ => RandomCitizenPicker.Dequeue().FakeCitizen)
                 .ToArray(),
+        });
+
+        var electionId = Ulid.NewUlid();
+
+        await DB.Queries.InsertElection(new () {
+            Date = DateTime.Today,
+            Description = "Descripcion de eleccion",
+            ElectionId = electionId.ToByteArray()
         });
 
         foreach (var party in parties)
         {
+            // Insert party
+            await DB.Queries.InsertParty(new () {
+                HedquartersAdress = party.HeadquartersAddress,
+                Name = party.Name,
+                PartyId = party.PartyId.ToByteArray()
+            });
+
+            // Insert partyMembers
             foreach (var (index, member) in party.Citizens.Index())
             {
                 await DB.Queries.InsertPartyMember(
@@ -53,15 +78,133 @@ public class DebugController(IFakeService fake, ICitizenService citizen, IJwtSer
                             _ => throw new InvalidOperationException(),
                         },
                         PartyId = party.PartyId.ToByteArray(),
-                    }
+                    } 
                 );
             }
 
-            // TODO : Insert ballots.
-            // await DB.Queries.InsertBallot
+            // Insert ballot
+            var ballotId = Ulid.NewUlid();
+            await DB.Queries.CreateBallot(new() {
+                BallotId = ballotId.ToByteArray(),
+            });
+
+            await DB.Queries.CreateListBallot(new() {
+                ListBallotId = ballotId.ToByteArray(),
+                ListNumber = ListNumber++
+            });
+
+            await DB.Queries.AddListBallotToDepartment(new() {
+                DeparmentId = montevideo.DepartmentId.ToByteArray(),
+                ListId = ballotId.ToByteArray(),
+            });
+
+            await DB.Queries.AllowBallotInElection(new() {
+                BallotId = ballotId.ToByteArray(),
+                ElectionId = electionId.ToByteArray(),
+            });
         }
 
-        return new { CreatedCitizens = citizensToCreate };
+        var establishment = new Building {
+            Address = Faker.Address.FullAddress(),
+            BuildingId = Ulid.NewUlid(),
+            Name = "nombredeedificio",
+            Zone = new() {
+                ZoneId = Ulid.NewUlid(),
+                Locality = new() {
+                    LocalityId = Ulid.NewUlid(),
+                    Department = montevideo,
+                    Type = LocalityType.City,
+                }
+            }
+        };
+
+        // Insert establishment
+        await DB.Queries.InsertLocality(new() {
+                DepartmentId = establishment.Zone.Locality.Department.DepartmentId.ToByteArray(),
+                LocalityId = establishment.Zone.Locality.LocalityId.ToByteArray(),
+                Name = "Nombredelocalidad",
+                Type = establishment.Zone.Locality.Type switch
+                {
+                    LocalityType.City => Queries.Codegen.LocalityType.City,
+                    LocalityType.Town =>  Queries.Codegen.LocalityType.Town,
+                    LocalityType.Other =>  Queries.Codegen.LocalityType.Other,
+                }
+        });
+
+        await DB.Queries.InsertZone(new() {
+            LocalityId = establishment.Zone.Locality.LocalityId.ToByteArray(),
+            Name = "Nombredezona",
+            PostalCode = Faker.Address.ZipCode(),
+            ZoneId = establishment.Zone.ZoneId.ToByteArray(),
+        });
+
+        await DB.Queries.InsertEstablishment(new() {
+            Address = establishment.Address,
+            EstablishmentId = establishment.BuildingId.ToByteArray(),
+            Name = establishment.Name,
+            ZoneId = establishment.Zone.ZoneId.ToByteArray(),
+        });
+
+        // Insert circuits
+        var circuits = new[] {0, 0}.Select((_) => new Circuit {
+            CircuitId = new() {
+                CircuitNumber = ++CircuitNumber,
+                EstablishmentId = establishment.BuildingId,
+            },
+            Building = establishment
+        }).ToImmutableArray();
+
+        var tables = circuits.Select((_) => new {
+            President = RandomCitizenPicker.Dequeue(),
+            Secretary = RandomCitizenPicker.Dequeue(),
+            Vocal = RandomCitizenPicker.Dequeue(),
+        });
+
+        foreach (var (circuit, table) in circuits.Zip(tables))
+        {
+            // Fake circuit
+            await DB.Queries.InsertCircuit(new () {
+                EstablishmentId = circuit.CircuitId.EstablishmentId.ToByteArray(),
+                PollingDistrictNumber = circuit.CircuitId.CircuitNumber,
+            });
+
+            // Add members
+            await DB.Queries.InsertBoardPresident(new() {
+                Org = Faker.Company.CompanyName(),
+                PollingStationPresidentId = table.President.CitizenId.ToByteArray(),
+            });
+            await DB.Queries.InsertBoardSecretary(new() {
+                Org = Faker.Company.CompanyName(),
+                PollingStationSecretaryId = table.Secretary.CitizenId.ToByteArray(),
+            });
+            await DB.Queries.InsertBoardVocal(new() {
+                Org = Faker.Company.CompanyName(),
+                PollingStationVocalId = table.Vocal.CitizenId.ToByteArray(),
+            });
+
+            // Set members to circuit
+            await DB.Queries.InsertBoardInCircuitElection(new () {
+                ElectionId = electionId.ToByteArray(),
+                EstablishmentId = circuit.CircuitId.EstablishmentId.ToByteArray(),
+                PollingDistrictNumber = circuit.CircuitId.CircuitNumber,
+                PollingStationPresidentId = table.President.CitizenId.ToByteArray(),
+                PollingStationSecretaryId =  table.Secretary.CitizenId.ToByteArray(),
+                PollingStationVocalId = table.Vocal.CitizenId.ToByteArray(),
+            });
+        }
+
+        var activeCircuit = circuits[0];
+
+        foreach (var citizen in citizensToCreate) {
+            await DB.Queries.AssignCitizenIntoPollingDistrictElection(new() {
+                CitizenId = citizen.CitizenId.ToByteArray(),
+                ElectionId = electionId.ToByteArray(),
+                EstablishmentId = activeCircuit.CircuitId.EstablishmentId.ToByteArray(),
+                PollingDistrictNumber = activeCircuit.CircuitId.CircuitNumber
+            });
+        }
+
+        return new { citizensToCreate, electionId, parties, circuits, activeCircuit, tables, establishment };
     }
 
     [HttpGet]

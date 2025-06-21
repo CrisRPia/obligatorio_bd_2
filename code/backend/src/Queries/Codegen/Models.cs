@@ -168,11 +168,6 @@ public class ListBallot
     public required int ListNumber { get; init; }
 };
 
-public class Candidate
-{
-    public required byte[] CandidateId { get; init; }
-};
-
 public class ListBallotHasCandidate
 {
     public byte[]? ListBallotId { get; init; }
@@ -185,12 +180,13 @@ public class Party
 {
     public required byte[] PartyId { get; init; }
     public string? HedquartersAdress { get; init; }
+    public string? Name { get; init; }
 };
 
 public class PartyHasCitizen
 {
-    public byte[]? ListBallotId { get; init; }
     public byte[]? PartyId { get; init; }
+    public byte[]? CitizenId { get; init; }
     public required PartyHasCitizenRole Role { get; init; }
     public required DateTime AdmissionDate { get; init; }
     public DateTime? ExitDate { get; init; }
