@@ -40,7 +40,6 @@ public class AuthController(IJwtService jwt) : Controller
             [Role.Admin] = true, // TODO
             [Role.Voter] = select.CitizenId is not null, // TODO
             [Role.Police] = select.PoliceOfficerId is not null,
-            // TODO: Handle checking for if they are their role in a current election.
             [Role.BoardPresident] = select.PollingStationPresidentId is not null,
             [Role.BoardSecretary] = select.PollingStationSecretaryId is not null,
             [Role.BoardVocal] = select.PollingStationVocalId is not null,

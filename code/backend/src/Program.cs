@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using AspNetCore.Swagger.Themes;
+using backend.src;
 using backend.src.Services;
-using Cysharp.Serialization.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFakeService, FakeService>();
 builder.Services.AddScoped<ICitizenService, CitizenService>();
-builder.Services.AddScoped<ICitizenCacheService, CitizenCacheService>();
+builder.Services.AddSingleton<ICitizenCacheService, CitizenCacheService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -56,7 +56,7 @@ builder
     .AddJwtBearer(options =>
     {
         var helper = new JwtService(builder.Configuration);
-        options.MapInboundClaims = false;
+        options.MapInboundClaims = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -75,6 +75,8 @@ builder
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.Converters.Add(new UlidJsonConverter());
     });
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 var app = builder.Build();
 
@@ -96,4 +98,5 @@ app.UseSwaggerUI(
 
 app.MapControllers();
 
+app.UseExceptionHandler(_ => {});
 app.Run();

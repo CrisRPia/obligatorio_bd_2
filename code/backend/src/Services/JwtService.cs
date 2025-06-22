@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using backend.src.Models;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Extensions;
 
 namespace backend.src.Services;
 
@@ -28,6 +27,12 @@ public interface IJwtService
 
 public class JwtService(IConfiguration configuration) : IJwtService
 {
+    private static class CustomClaimTypes
+    {
+        public const string EstablishmentId = "establishment_id";
+        public const string CircuitNumber = "circuit_number";
+    }
+
     private IConfiguration Configuration { get; init; } = configuration;
     private IConfigurationSection Section => Configuration.GetSection("Jwt");
     public SecurityKey Key => new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Section["Key"]!));
@@ -38,19 +43,19 @@ public class JwtService(IConfiguration configuration) : IJwtService
     {
         List<Claim> claims =
         [
-            new(JwtRegisteredClaimNames.Name, data.Username),
-            new(JwtRegisteredClaimNames.Sub, data.UserId.ToString()),
-            new(JwtRegisteredClaimNames.Jti, data.TokenId.ToString() ?? Ulid.NewUlid().ToString()),
+            new(ClaimTypes.Name, data.Username),
+            new(ClaimTypes.NameIdentifier, data.UserId.ToString()),
+            new(JwtRegisteredClaimNames.Jti, (data.TokenId ?? Ulid.NewUlid()).ToString()),
         ];
 
         if (data.CircuitId is CircuitId content)
         {
-            claims.Add(new(nameof(content.EstablishmentId), content.EstablishmentId.ToString()));
-            claims.Add(new(nameof(content.CircuitNumber), content.CircuitNumber.ToString()));
+            claims.Add(new(CustomClaimTypes.EstablishmentId, content.EstablishmentId.ToString()));
+            claims.Add(new(CustomClaimTypes.CircuitNumber, content.CircuitNumber.ToString()));
         }
 
         foreach (var role in data.Roles)
-            claims.Add(new Claim(ClaimTypes.Role, role.GetDisplayName()));
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var securityToken = tokenHandler.CreateToken(
@@ -67,6 +72,22 @@ public class JwtService(IConfiguration configuration) : IJwtService
         return tokenHandler.WriteToken(securityToken);
     }
 
+    private static CircuitId? CreateCircuitIdFromClaims(ClaimsPrincipal principal)
+    {
+        var establishmentIdStr = principal.FindFirstValue(CustomClaimTypes.EstablishmentId);
+        var circuitNumberStr = principal.FindFirstValue(CustomClaimTypes.CircuitNumber);
+
+        if (establishmentIdStr != null && circuitNumberStr != null)
+        {
+            return new CircuitId
+            {
+                EstablishmentId = Ulid.Parse(establishmentIdStr),
+                CircuitNumber = int.Parse(circuitNumberStr),
+            };
+        }
+        return null;
+    }
+
     public EmbeddedJwtData? GetData(HttpContext httpContextAccessor)
     {
         var user = httpContextAccessor.User;
@@ -81,29 +102,17 @@ public class JwtService(IConfiguration configuration) : IJwtService
         return new()
         {
             Roles = roles,
-            Username =
-                user.FindFirstValue(JwtRegisteredClaimNames.Name)
-                ?? throw new InvalidOperationException(),
+            Username = user.Identity.Name
+                ?? throw new InvalidOperationException("No name found"),
             UserId = Ulid.Parse(
-                user.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                    ?? throw new InvalidOperationException()
+                    user.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? throw new InvalidOperationException("No userId found")
             ),
             TokenId = Ulid.Parse(
                 user.FindFirstValue(JwtRegisteredClaimNames.Jti)
-                    ?? throw new InvalidOperationException()
+                    ?? throw new InvalidOperationException("No tokenId found")
             ),
-            // I bet you can't write uglier code than this -- CR.
-            CircuitId =
-                user.FindFirstValue(nameof(EmbeddedJwtData.CircuitId.EstablishmentId))
-                    is string establishmentId
-                && user.FindFirstValue(nameof(EmbeddedJwtData.CircuitId.CircuitNumber))
-                    is string circuitNumber
-                    ? new()
-                    {
-                        EstablishmentId = Ulid.Parse(establishmentId),
-                        CircuitNumber = int.Parse(circuitNumber),
-                    }
-                    : null,
+            CircuitId = CreateCircuitIdFromClaims(user),
         };
     }
 }

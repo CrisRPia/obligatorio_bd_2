@@ -109,7 +109,8 @@ public class PollingDistrict
 public class ElectionHasPollingDistrict
 {
     public required byte[] ElectionId { get; init; }
-    public required byte[] PollingDistrictNumber { get; init; }
+    public required byte[] EstablishmentId { get; init; }
+    public required int PollingDistrictNumber { get; init; }
 };
 
 public class PollingDistrictInElectionHasPollingStation

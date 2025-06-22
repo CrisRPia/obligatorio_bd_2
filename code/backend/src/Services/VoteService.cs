@@ -24,7 +24,7 @@ public record VoteService
 
     private IEnumerable<MySqlBatchCommand> RegisterVoter()
     {
-        var parameters = Ballots.Select(
+        var parameters = Ballots.Items.Select(
             vote => new QueriesSql.InsertCitizenVoteInPollingDistrictElectionArgs
             {
                 CitizenId = CitizenId.ToByteArray(),
@@ -62,7 +62,7 @@ public record VoteService
 
     private IEnumerable<MySqlBatchCommand> RegisterBallot(Ulid voteId)
     {
-        return Ballots.Select(vote =>
+        return Ballots.Items.Select(vote =>
         {
             var command = new MySqlBatchCommand(QueriesSql.InsertBallotSql);
             command.Parameters.AddFromObject(

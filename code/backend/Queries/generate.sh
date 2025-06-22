@@ -27,5 +27,9 @@ sed -i '' 's/Org?/Org/g' \
 sed -i '' 's/Type?/Type/g' \
     "$script_dir/../src/Queries/Codegen/QueriesSql.cs"
 
+# This helper misses a space in the generated code.
+sed -i '' 's/@{paramName}/ @{paramName}/g' \
+    "$script_dir/../src/Queries/Codegen/Utils.cs"
+
 # Format
 dotnet csharpier format "$proyect_root/src/Queries/Codegen"

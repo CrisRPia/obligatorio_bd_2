@@ -192,3 +192,12 @@ VALUES (?, ?, ?, ?, ?, ?);
 -- name: AssignCitizenIntoPollingDistrictElection :exec
 insert into citizen_assigned_int_polling_district_election (citizen_id, election_id, polling_district_number, establishment_id)
 VALUES (?, ?, ?, ?);
+
+-- name: InsertMunicipalElection :exec
+insert into municipal (election_id, locality_id)
+values (?, ?);
+
+-- name: GetMunicipalElectionResult :exec
+select count(*), vcb.ballot_id
+from vote_contains_ballot vcb
+         join ballot b on b.ballot_id = vcb.ballot_id

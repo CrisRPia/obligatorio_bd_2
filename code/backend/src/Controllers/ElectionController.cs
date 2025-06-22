@@ -74,11 +74,12 @@ public class ElectionController : Controller
             new() { Elections = parsedResults.Select(r => r.ElectionId.ToByteArray()).ToArray() }
         );
 
+
         parsedResults = parsedResults.Select(result =>
             result with
             {
                 AllowedBallots = rows.Where(row =>
-                        row.ElectionId == result.ElectionId.ToByteArray()
+                        row.ElectionId.SequenceEqual(result.ElectionId.ToByteArray())
                     )
                     .Select(row => new Ballot()
                     {

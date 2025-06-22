@@ -819,4 +819,24 @@ public partial class QueriesSql
             await connection.ExecuteAsync(AssignCitizenIntoPollingDistrictElectionSql, queryParams);
         }
     }
+
+    public const string InsertMunicipalElectionSql =
+        "insert into municipal (election_id, locality_id) values (@election_id, @locality_id); SELECT LAST_INSERT_ID()";
+
+    public partial class InsertMunicipalElectionArgs
+    {
+        public required byte[] ElectionId { get; init; }
+        public required byte[] LocalityId { get; init; }
+    };
+
+    public async Task InsertMunicipalElection(InsertMunicipalElectionArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("election_id", args.ElectionId);
+            queryParams.Add("locality_id", args.LocalityId);
+            await connection.ExecuteAsync(InsertMunicipalElectionSql, queryParams);
+        }
+    }
 }

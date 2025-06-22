@@ -11,9 +11,9 @@ public static class Utils
         string paramName
     )
     {
-        var paramArgs = Enumerable.Range(0, sliceSize).Select(i => $"@{paramName}Arg{i}").ToList();
+        var paramArgs = Enumerable.Range(0, sliceSize).Select(i => $" @{paramName}Arg{i}").ToList();
         return originalSql.Replace(
-            $"/*SLICE:{paramName}*/@{paramName}",
+            $"/*SLICE:{paramName}*/ @{paramName}",
             string.Join(",", paramArgs)
         );
     }

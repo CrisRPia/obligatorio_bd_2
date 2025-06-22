@@ -14,11 +14,6 @@ public class TableController(ICitizenCacheService CitizenCache, IJwtService jwtS
     [Route("{citizenId}/authorize/")]
     public async Task<BooleanReturn> Authorize(Ulid citizenId, bool authorizeObserved)
     {
-        if (CitizenCache.GetCitizenCircuit(citizenId) is not null)
-        {
-            return BooleanReturn.True;
-        }
-
         if (jwtService.GetData(HttpContext)?.CircuitId is not CircuitId circuitId)
         {
             return BooleanReturn.False;
@@ -26,13 +21,22 @@ public class TableController(ICitizenCacheService CitizenCache, IJwtService jwtS
 
         CitizenCache.EnableCitizen((citizenId, authorizeObserved), circuitId);
 
-        return BooleanReturn.True;
+        return new() {
+            Success = CitizenCache.GetCitizenCircuit(citizenId) is not null
+        };
     }
 
     [HttpPut]
     [SafeAuthorize(roles: [Role.BoardPresident])]
     [Route("close")]
-    public async Task<BooleanReturn> CloseTable()
+    public async Task<BooleanReturn> CloseTable() => await SetTo(false);
+
+    [HttpPut]
+    [SafeAuthorize(roles: [Role.BoardPresident])]
+    [Route("open")]
+    public async Task<BooleanReturn> OpenTable() => await SetTo(true);
+
+    private async Task<BooleanReturn> SetTo(bool value)
     {
         var data = jwtService.GetData(HttpContext);
 
@@ -41,14 +45,15 @@ public class TableController(ICitizenCacheService CitizenCache, IJwtService jwtS
             return BooleanReturn.False;
         }
 
-        var result = DB.Queries.UpdatePollingDistrict(
+        await DB.Queries.UpdatePollingDistrict(
             new()
             {
                 PollingDistrictNumber = data.CircuitId.CircuitNumber,
                 EstablishmentId = data.CircuitId.EstablishmentId.ToByteArray(),
-                IsOpen = false,
+                IsOpen = value,
             }
         );
+
         return BooleanReturn.True;
     }
 }

@@ -33,13 +33,12 @@ public record CitizenService : ICitizenService
     )
     {
         var command = new MySqlBatchCommand(QueriesSql.InsertCitizenSql);
-        var id = Ulid.NewUlid();
 
         command.Parameters.AddFromObject(
             new QueriesSql.InsertCitizenArgs
             {
                 Birth = citizen.BirthDate.ToDateTime(TimeOnly.MinValue),
-                CitizenId = id.ToByteArray(),
+                CitizenId = citizen.CitizenId.ToByteArray(),
                 CredencialCivica = citizen.CredencialCivica,
                 Name = citizen.Name,
                 PasswordHash = passwordHash,
@@ -48,7 +47,7 @@ public record CitizenService : ICitizenService
             }
         );
 
-        return (id, [command]);
+        return (citizen.CitizenId, [command]);
     }
 
     public IEnumerable<MySqlBatchCommand> GetCitizen()

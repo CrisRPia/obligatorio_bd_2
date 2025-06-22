@@ -18,7 +18,10 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
     {
         if (CitizenCache.GetCitizenCircuit(citizenId) is not CircuitId circuitId)
         {
-            return BooleanReturn.False;
+            return new() {
+                Success = false,
+                Message = "Could not get circuit."
+            };
         }
 
         using var connection = DB.NewOpenConnection();
@@ -41,6 +44,7 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
             }.VotesTransaction(isObserved);
 
             var batch = connection.CreateBatch();
+            batch.Transaction = transaction;
 
             foreach (var command in batchCommands)
                 batch.BatchCommands.Add(command);
