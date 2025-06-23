@@ -44,7 +44,8 @@ public class ElectionController : Controller
                 DepartmentId = e.DepartmentId is not null ? new Ulid(e.DepartmentId) : null,
                 // Allowed ballots are calculated later on.
                 AllowedBallots = [],
-                State = e.State switch {
+                State = e.State switch
+                {
                     Queries.Codegen.ElectionState.Open => ElectionState.Open,
                     Queries.Codegen.ElectionState.Closed => ElectionState.Closed,
                     Queries.Codegen.ElectionState.NotStarted => ElectionState.NotStarted,
@@ -78,7 +79,6 @@ public class ElectionController : Controller
             new() { Elections = parsedResults.Select(r => r.ElectionId.ToByteArray()).ToArray() }
         );
 
-
         parsedResults = parsedResults.Select(result =>
             result with
             {
@@ -101,28 +101,38 @@ public class ElectionController : Controller
 
     [HttpPost]
     [Route("result")]
-    public async Task<ListModel<ElectionResult?>> GetElectionResult(IReadOnlyList<Ulid> electionIds) {
-        var result = await DB.Queries.GetMunicipalElectionResult(new() {
-            Elections = electionIds.Select(e => e.ToByteArray()).ToArray()
-        });
+    public async Task<ListModel<ElectionResult?>> GetElectionResult(IReadOnlyList<Ulid> electionIds)
+    {
+        var result = await DB.Queries.GetMunicipalElectionResult(
+            new() { Elections = electionIds.Select(e => e.ToByteArray()).ToArray() }
+        );
 
         var elections = result.GroupBy(row => new Ulid(row.ElectionId));
 
-        return new() {
-            Items = elections.Select(group => {
-                return new ElectionResult() {
-                    Type = ElectionType.MunicipalElection,
-                    TotalVotes = (int) group.Select(row => row.AmountOfVotes).Sum(),
-                    ListBasedResult = group.Select(row => new VoteResult<Ballot>() {
-                        VoteCount = (int) row.AmountOfVotes,
-                        Vote = new() {
-                            ListNumber = row.ListNumber,
-                            BallotId = new Ulid(row.ListBallotId),
-                            ElectionId = new Ulid(row.ElectionId)
-                        }
-                    }).ToList()
-                };
-            }).ToArray()
+        return new()
+        {
+            Items = elections
+                .Select(group =>
+                {
+                    return new ElectionResult()
+                    {
+                        Type = ElectionType.MunicipalElection,
+                        TotalVotes = (int)group.Select(row => row.AmountOfVotes).Sum(),
+                        ListBasedResult = group
+                            .Select(row => new VoteResult<Ballot>()
+                            {
+                                VoteCount = (int)row.AmountOfVotes,
+                                Vote = new()
+                                {
+                                    ListNumber = row.ListNumber,
+                                    BallotId = new Ulid(row.ListBallotId),
+                                    ElectionId = new Ulid(row.ElectionId),
+                                },
+                            })
+                            .ToList(),
+                    };
+                })
+                .ToArray(),
         };
     }
 }

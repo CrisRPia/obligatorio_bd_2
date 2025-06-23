@@ -102,10 +102,9 @@ public class JwtService(IConfiguration configuration) : IJwtService
         return new()
         {
             Roles = roles,
-            Username = user.Identity.Name
-                ?? throw new InvalidOperationException("No name found"),
+            Username = user.Identity.Name ?? throw new InvalidOperationException("No name found"),
             UserId = Ulid.Parse(
-                    user.FindFirstValue(ClaimTypes.NameIdentifier)
+                user.FindFirstValue(ClaimTypes.NameIdentifier)
                     ?? throw new InvalidOperationException("No userId found")
             ),
             TokenId = Ulid.Parse(

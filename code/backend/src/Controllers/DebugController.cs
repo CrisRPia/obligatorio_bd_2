@@ -58,7 +58,6 @@ public class DebugController(IFakeService fake, ICitizenService citizen, IJwtSer
             Type = LocalityType.City,
         };
 
-
         // Insert establishment
         await DB.Queries.InsertLocality(
             new()
@@ -84,10 +83,13 @@ public class DebugController(IFakeService fake, ICitizenService citizen, IJwtSer
             }
         );
 
-        await DB.Queries.InsertMunicipalElection(new() {
+        await DB.Queries.InsertMunicipalElection(
+            new()
+            {
                 ElectionId = electionId.ToByteArray(),
                 LocalityId = locality.LocalityId.ToByteArray(),
-        });
+            }
+        );
 
         foreach (var party in parties)
         {

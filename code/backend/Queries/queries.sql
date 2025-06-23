@@ -209,7 +209,6 @@ with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.
 select *
 from votes_per_ballot
 order by election_id, amount_of_votes desc;
-;
 
 select *
 from vote_contains_ballot;

@@ -46,7 +46,8 @@ public class DepartmentController : Controller
     [HttpPost]
     public async Task<IEnumerable<Department>> InitDepartments()
     {
-        if ((await GetAllDepartments()).Any()) {
+        if ((await GetAllDepartments()).Any())
+        {
             throw new InvalidOperationException();
         }
 

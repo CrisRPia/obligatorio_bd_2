@@ -98,5 +98,5 @@ app.UseSwaggerUI(
 
 app.MapControllers();
 
-app.UseExceptionHandler(_ => {});
+app.UseExceptionHandler(_ => { });
 app.Run();

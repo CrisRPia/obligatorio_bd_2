@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace backend.src.Models;
 
-public record CircuitId {
+public record CircuitId
+{
     public required int CircuitNumber { get; init; }
     public required Ulid EstablishmentId { get; init; }
 }

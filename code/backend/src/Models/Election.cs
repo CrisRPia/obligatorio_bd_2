@@ -34,10 +34,11 @@ public enum ElectionType
     Runoff,
 }
 
-public enum ElectionState {
+public enum ElectionState
+{
     NotStarted,
     Open,
-    Closed
+    Closed,
 }
 
 public record Election

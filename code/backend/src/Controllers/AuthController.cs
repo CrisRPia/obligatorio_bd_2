@@ -71,7 +71,7 @@ public class AuthController(IJwtService jwt) : Controller
             CitizenId = new Ulid(select.CitizenId),
             User = new FullCitizen
             {
-                CitizenId =  new Ulid(select.CitizenId),
+                CitizenId = new Ulid(select.CitizenId),
                 BirthDate = DateOnly.FromDateTime(select.Birth),
                 CredencialCivica = select.CredencialCivica,
                 Name = select.Name,

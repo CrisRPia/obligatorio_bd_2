@@ -18,10 +18,7 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
     {
         if (CitizenCache.GetCitizenCircuit(citizenId) is not CircuitId circuitId)
         {
-            return new() {
-                Success = false,
-                Message = "Could not get circuit."
-            };
+            return new() { Success = false, Message = "Could not get circuit." };
         }
 
         using var connection = DB.NewOpenConnection();
@@ -33,7 +30,14 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
             );
 
             var isObserved = userAssignmentResult
-                .Select((r) => new CircuitId { EstablishmentId = new Ulid(r.EstablishmentId), CircuitNumber = r.PollingDistrictNumber })
+                .Select(
+                    (r) =>
+                        new CircuitId
+                        {
+                            EstablishmentId = new Ulid(r.EstablishmentId),
+                            CircuitNumber = r.PollingDistrictNumber,
+                        }
+                )
                 .Contains(circuitId);
 
             var batchCommands = new VoteService
@@ -64,24 +68,30 @@ public class CitizenController(ICitizenCacheService CitizenCache) : Controller
 
     [HttpGet]
     [SafeAuthorize([Role.BoardPresident])]
-    public async Task<Option<FullCitizen>> GetCitizen([CredencialCivica, Required, FromQuery] string credencialCivica) {
-        var row = await DB.Queries.GetCitizenByCredencialCivica(new() {
-                CredencialCivica = credencialCivica
-        });
+    public async Task<Option<FullCitizen>> GetCitizen(
+        [CredencialCivica, Required, FromQuery] string credencialCivica
+    )
+    {
+        var row = await DB.Queries.GetCitizenByCredencialCivica(
+            new() { CredencialCivica = credencialCivica }
+        );
 
-        if (row is null) {
-            return new() {};
+        if (row is null)
+        {
+            return new() { };
         }
 
-        return new() {
-            Value = new() {
+        return new()
+        {
+            Value = new()
+            {
                 UruguayanId = row.UruguayanId,
                 Surname = row.Surname,
                 Name = row.Name,
                 CredencialCivica = row.CredencialCivica,
                 BirthDate = DateOnly.FromDateTime(row.Birth),
                 CitizenId = new Ulid(row.CitizenId),
-            }
+            },
         };
     }
 }

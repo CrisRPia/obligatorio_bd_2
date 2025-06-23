@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
+
 namespace backend.src;
 
 public class GlobalExceptionHandler(IHostEnvironment environment) : IExceptionHandler
@@ -8,7 +9,8 @@ public class GlobalExceptionHandler(IHostEnvironment environment) : IExceptionHa
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         Console.WriteLine($"An error occurred: {exception.Message}");
 
@@ -16,15 +18,15 @@ public class GlobalExceptionHandler(IHostEnvironment environment) : IExceptionHa
         {
             StatusCode = StatusCodes.Status500InternalServerError,
             Message = "An unexpected error occurred. Please try again later.",
-            StackTrace = ""
+            StackTrace = "",
         };
-        
+
         if (_environment.IsDevelopment())
         {
-            errorResponse = errorResponse with 
+            errorResponse = errorResponse with
             {
                 Message = exception.Message,
-                StackTrace = exception.StackTrace ?? ""
+                StackTrace = exception.StackTrace ?? "",
             };
         }
 

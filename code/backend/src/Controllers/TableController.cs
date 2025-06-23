@@ -21,9 +21,7 @@ public class TableController(ICitizenCacheService CitizenCache, IJwtService jwtS
 
         CitizenCache.EnableCitizen((citizenId, authorizeObserved), circuitId);
 
-        return new() {
-            Success = CitizenCache.GetCitizenCircuit(citizenId) is not null
-        };
+        return new() { Success = CitizenCache.GetCitizenCircuit(citizenId) is not null };
     }
 
     [HttpPut]
