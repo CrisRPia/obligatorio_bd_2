@@ -2,11 +2,9 @@ import './App.css'
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Importa los componentes de las páginas nuevas (asumiendo que existen en la carpeta 'pages')
 import Login from './pages/Login.tsx';
+import InicioVotante from './pages/InicioVotante.tsx';
 import EmitirVoto from './pages/EmitirVoto.tsx';
-import SeleccionarCircuito from './pages/SeleccionarCircuito.tsx';
-import VotoCompletado from './pages/VotoCompletado.tsx';
 import PanelMesa from './pages/PanelMesa.tsx';
 import Reportes from './pages/Reportes.tsx';
 import Unauthorized from './pages/Unauthorized.tsx';
@@ -52,6 +50,22 @@ const App: React.FC = () => {
 
         {/* --- Rutas para Ciudadanos Votantes --- */}
 
+
+        {/* Inicio Votante */}
+        <Route
+          path="/votar/:circuitId/ingresar"
+          element={
+            <InicioVotante />
+            /*
+            <ProtectedRoute allowedUserTypes={['voter']}>
+              <InicioVotante />
+            </ProtectedRoute>
+            */
+          }
+        />
+
+
+
         {/* Emitir Voto */}
         <Route
           path="/votar/:circuitId"
@@ -68,15 +82,7 @@ const App: React.FC = () => {
 
         
 
-        {/* Pantalla de "Ya votó" */}
-        <Route
-          path="/voto-completado"
-          element={
-            <ProtectedRoute allowedUserTypes={['voter']}>
-              <VotoCompletado />
-            </ProtectedRoute>
-          }
-        />
+        
 
         {/* --- Rutas para Presidentes de Mesa --- */}
 
