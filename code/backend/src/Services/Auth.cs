@@ -8,6 +8,8 @@ public enum Role
 {
     Voter,
     BoardPresident,
+    BoardVocal,
+    BoardSecretary,
     Admin,
     Police,
 }
@@ -21,8 +23,5 @@ public class SafeAuthorizeAttribute : AuthorizeAttribute
     }
 
     public static string RolesToString(IEnumerable<Role> roles) =>
-        string.Join(
-            ",",
-            roles.Select(r => r.GetDisplayName()).ToImmutableSortedSet()
-        );
+        string.Join(",", roles.Select(r => r.GetDisplayName()).ToImmutableSortedSet());
 }

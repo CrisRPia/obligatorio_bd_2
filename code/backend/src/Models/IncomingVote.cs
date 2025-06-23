@@ -4,30 +4,30 @@ using backend.src.Attributes;
 
 namespace backend.src.Models;
 
-public record IncomingVotes : ListModel<IncomingVote>
+public record Ballots : ListModel<Ballot>
 {
     [Required, CredencialCivicaAttribute]
     public required string VoterCredencialCivica;
 }
 
-public enum VoteType
+public enum BallotType
 {
     List,
     Boolean,
     Count,
 }
 
-public record IncomingVote
+public record Ballot
 {
     [Required]
-    public required VoteType Type { get; init; }
+    public required Ulid ElectionId { get; init; }
 
     [Required]
-    public required Guid ElectionId { get; init; }
+    public required Ulid BallotId { get; init; }
 
-    [Description($"Specify if vote type is {nameof(VoteType.List)}.")]
-    public int? ListId { get; init; }
+    [Description($"Specify if vote type is {nameof(BallotType.List)}.")]
+    public int? ListNumber { get; init; }
 
-    [Description($"Specify if vote type is {nameof(VoteType.Boolean)}.")]
+    [Description($"Specify if vote type is {nameof(BallotType.Boolean)}.")]
     public bool? IsYes { get; init; }
 }

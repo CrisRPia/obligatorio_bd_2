@@ -8,5 +8,11 @@ public record Party
     public required string HeadquartersAddress { get; init; }
 
     [Required]
-    public required Guid PartyId { get; init; }
+    public required string Name { get; init; }
+
+    [Required]
+    public required Ulid PartyId { get; init; }
+
+    [Required]
+    public required IReadOnlyList<BaseCitizen> Citizens { get; init; }
 }

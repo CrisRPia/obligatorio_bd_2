@@ -13,64 +13,869 @@ using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
+using Dapper;
 using MySqlConnector;
 
 namespace backend.src.Queries.Codegen;
 
-public class QueriesSql
+public partial class QueriesSql
 {
     public QueriesSql(string connectionString)
     {
         this.ConnectionString = connectionString;
+        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     }
 
     private string ConnectionString { get; }
 
-    private const string GetCitizenSql =
-        "SELECT citizen_id, uruguayan_id, credencial_civica, name, surname, birth, password_hash FROM  citizen  WHERE  uruguayan_id  =  @uruguayan_id  ";
+    public const string InsertCitizenVoteInPollingDistrictElectionSql =
+        "INSERT INTO  citizen_votes_in_polling_district_election ( citizen_id , election_id, polling_district_number, establishment_id ) VALUES ( @citizen_id, @election_id, @polling_district_number, @establishment_id ); SELECT  LAST_INSERT_ID ( ) ";
 
-    public readonly record struct GetCitizenRow(
-        string CitizenId,
-        long UruguayanId,
-        long CredencialCivica,
-        string Name,
-        string Surname,
-        DateTime Birth,
-        string PasswordHash
-    );
+    public partial class InsertCitizenVoteInPollingDistrictElectionArgs
+    {
+        public required byte[] CitizenId { get; init; }
+        public required byte[] ElectionId { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+    };
 
-    public readonly record struct GetCitizenArgs(long UruguayanId);
-
-    public async Task<GetCitizenRow?> GetCitizen(GetCitizenArgs args)
+    public async Task InsertCitizenVoteInPollingDistrictElection(
+        InsertCitizenVoteInPollingDistrictElectionArgs args
+    )
     {
         using (var connection = new MySqlConnection(ConnectionString))
         {
-            await connection.OpenAsync();
-            using (var command = new MySqlCommand(GetCitizenSql, connection))
-            {
-                command.Parameters.AddWithValue(
-                    "@uruguayan_id",
-                    args.UruguayanId
-                );
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    if (await reader.ReadAsync())
-                    {
-                        return new GetCitizenRow
-                        {
-                            CitizenId = reader.GetString(0),
-                            UruguayanId = reader.GetInt64(1),
-                            CredencialCivica = reader.GetInt64(2),
-                            Name = reader.GetString(3),
-                            Surname = reader.GetString(4),
-                            Birth = reader.GetDateTime(5),
-                            PasswordHash = reader.GetString(6),
-                        };
-                    }
-                }
-            }
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            queryParams.Add("election_id", args.ElectionId);
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            queryParams.Add("establishment_id", args.EstablishmentId);
+            await connection.ExecuteAsync(
+                InsertCitizenVoteInPollingDistrictElectionSql,
+                queryParams
+            );
         }
+    }
 
-        return null;
+    public const string InsertCitizenSql =
+        "INSERT INTO  citizen ( citizen_id , uruguayan_id, credencial_civica, name, surname, birth, password_hash ) VALUES ( @citizen_id, @uruguayan_id, @credencial_civica, @name, @surname, @birth, @password_hash ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertCitizenArgs
+    {
+        public required byte[] CitizenId { get; init; }
+        public required int UruguayanId { get; init; }
+        public required string CredencialCivica { get; init; }
+        public required string Name { get; init; }
+        public required string Surname { get; init; }
+        public required DateTime Birth { get; init; }
+        public required string PasswordHash { get; init; }
+    };
+
+    public async Task InsertCitizen(InsertCitizenArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            queryParams.Add("uruguayan_id", args.UruguayanId);
+            queryParams.Add("credencial_civica", args.CredencialCivica);
+            queryParams.Add("name", args.Name);
+            queryParams.Add("surname", args.Surname);
+            queryParams.Add("birth", args.Birth);
+            queryParams.Add("password_hash", args.PasswordHash);
+            await connection.ExecuteAsync(InsertCitizenSql, queryParams);
+        }
+    }
+
+    public const string SelectUserAssignmentSql =
+        "SELECT a.election_id, a.polling_district_number, a.establishment_id FROM  citizen_assigned_int_polling_district_election  a  LEFT  JOIN  citizen_votes_in_polling_district_election  v  ON  v . election_id  =  a . election_id  AND  v . citizen_id  =  a . citizen_id  AND  v . polling_district_number  =  a . polling_district_number  INNER  JOIN  election  e  ON  a . election_id  =  e . election_id  WHERE  a . citizen_id  =  @citizen_id  AND  e . date < CURRENT_DATE ( ) AND  e . state  =  'open'  AND  v . election_id  IS  NULL ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class SelectUserAssignmentRow
+    {
+        public required byte[] ElectionId { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+    };
+
+    public partial class SelectUserAssignmentArgs
+    {
+        public required byte[] CitizenId { get; init; }
+    };
+
+    public async Task<List<SelectUserAssignmentRow>> SelectUserAssignment(
+        SelectUserAssignmentArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            var result = await connection.QueryAsync<SelectUserAssignmentRow>(
+                SelectUserAssignmentSql,
+                queryParams
+            );
+            return result.AsList();
+        }
+    }
+
+    public const string SelectCitizenSql =
+        "SELECT citizen_id, credencial_civica, uruguayan_id, name, surname, birth, password_hash FROM  citizen  WHERE  citizen_id  =  @citizen_id ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class SelectCitizenRow
+    {
+        public required byte[] CitizenId { get; init; }
+        public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
+        public required string Name { get; init; }
+        public required string Surname { get; init; }
+        public required DateTime Birth { get; init; }
+        public required string PasswordHash { get; init; }
+    };
+
+    public partial class SelectCitizenArgs
+    {
+        public required byte[] CitizenId { get; init; }
+    };
+
+    public async Task<SelectCitizenRow?> SelectCitizen(SelectCitizenArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            var result = await connection.QueryFirstOrDefaultAsync<SelectCitizenRow?>(
+                SelectCitizenSql,
+                queryParams
+            );
+            return result;
+        }
+    }
+
+    public const string LoginCitizenSql =
+        "SELECT c.citizen_id, c.credencial_civica, c.uruguayan_id, c.name, c.surname, c.birth, c.password_hash, po . police_officer_id, psp . polling_station_president_id, psv . polling_station_vocal_id, pss . polling_station_secretary_id, pdiehps . polling_district_number, pdiehps . establishment_id  FROM  citizen  c  LEFT  JOIN  police_officer  po  ON  po . police_officer_id  =  c . citizen_id  LEFT  JOIN  polling_station_president  psp  ON  psp . polling_station_president_id  =  c . citizen_id  LEFT  JOIN  polling_station_vocal  psv  ON  psv . polling_station_vocal_id  =  c . citizen_id  LEFT  JOIN  polling_station_secretary  pss  ON  pss . polling_station_secretary_id  =  c . citizen_id  LEFT  JOIN  polling_district_in_election_has_polling_station  pdiehps  ON  pdiehps . polling_station_president_id  =  c . citizen_id  WHERE  c . credencial_civica  =  @credencial_civica  AND  c . uruguayan_id  =  @uruguayan_id; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class LoginCitizenRow
+    {
+        public required byte[] CitizenId { get; init; }
+        public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
+        public required string Name { get; init; }
+        public required string Surname { get; init; }
+        public required DateTime Birth { get; init; }
+        public required string PasswordHash { get; init; }
+        public byte[]? PoliceOfficerId { get; init; }
+        public byte[]? PollingStationPresidentId { get; init; }
+        public byte[]? PollingStationVocalId { get; init; }
+        public byte[]? PollingStationSecretaryId { get; init; }
+        public int? PollingDistrictNumber { get; init; }
+        public byte[]? EstablishmentId { get; init; }
+    };
+
+    public partial class LoginCitizenArgs
+    {
+        public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
+    };
+
+    public async Task<LoginCitizenRow?> LoginCitizen(LoginCitizenArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("credencial_civica", args.CredencialCivica);
+            queryParams.Add("uruguayan_id", args.UruguayanId);
+            var result = await connection.QueryFirstOrDefaultAsync<LoginCitizenRow?>(
+                LoginCitizenSql,
+                queryParams
+            );
+            return result;
+        }
+    }
+
+    public const string InsertVoteSql =
+        "INSERT INTO  vote ( vote_id , state ) VALUES ( @vote_id, @state ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertVoteArgs
+    {
+        public required byte[] VoteId { get; init; }
+        public required VoteState State { get; init; }
+    };
+
+    public async Task InsertVote(InsertVoteArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("vote_id", args.VoteId);
+            queryParams.Add("state", args.State.ToEnumString());
+            await connection.ExecuteAsync(InsertVoteSql, queryParams);
+        }
+    }
+
+    public const string InsertBallotSql =
+        "INSERT INTO  vote_contains_ballot ( vote_id , ballot_id ) VALUES ( @vote_id, @ballot_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertBallotArgs
+    {
+        public required byte[] VoteId { get; init; }
+        public required byte[] BallotId { get; init; }
+    };
+
+    public async Task InsertBallot(InsertBallotArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("vote_id", args.VoteId);
+            queryParams.Add("ballot_id", args.BallotId);
+            await connection.ExecuteAsync(InsertBallotSql, queryParams);
+        }
+    }
+
+    public const string GetElectionsForCitizenSql =
+        "SELECT e.election_id, e.description, e.date, e.state, b . election_id  AS  'ballotage_id', pl . election_id  AS  'pleibiscite_id', r . election_id  AS  'referendum_id', pr . election_id  AS  'presidential_id', m . election_id  AS  'municipal_id', department_id FROM  election  e  INNER  JOIN  citizen_assigned_int_polling_district_election  caipde  ON  e . election_id  =  caipde . election_id  AND  caipde . citizen_id  =  @citizen_id  LEFT  JOIN  ballotage  b  ON  e . election_id  =  b . election_id  LEFT  JOIN  pleibiscite  pl  ON  e . election_id  =  pl . election_id  LEFT  JOIN  referendum  r  ON  e . election_id  =  r . election_id  LEFT  JOIN  presidential  pr  ON  e . election_id  =  pr . election_id  LEFT  JOIN  municipal  m  ON  e . election_id  =  m . election_id  LEFT  JOIN  locality  l  ON  l . locality_id  =  m . locality_id  WHERE ( @start_date <= e . date ) AND ( @end_date >= e . date ) ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetElectionsForCitizenRow
+    {
+        public required byte[] ElectionId { get; init; }
+        public required string Description { get; init; }
+        public required DateTime Date { get; init; }
+        public required ElectionState State { get; init; }
+        public byte[]? BallotageId { get; init; }
+        public byte[]? PleibisciteId { get; init; }
+        public byte[]? ReferendumId { get; init; }
+        public byte[]? PresidentialId { get; init; }
+        public byte[]? MunicipalId { get; init; }
+        public byte[]? DepartmentId { get; init; }
+    };
+
+    public partial class GetElectionsForCitizenArgs
+    {
+        public required byte[] CitizenId { get; init; }
+        public required DateTime StartDate { get; init; }
+        public required DateTime EndDate { get; init; }
+    };
+
+    public async Task<List<GetElectionsForCitizenRow>> GetElectionsForCitizen(
+        GetElectionsForCitizenArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            queryParams.Add("start_date", args.StartDate);
+            queryParams.Add("end_date", args.EndDate);
+            var result = await connection.QueryAsync<GetElectionsForCitizenRow>(
+                GetElectionsForCitizenSql,
+                queryParams
+            );
+            return result.AsList();
+        }
+    }
+
+    public const string GetPollingStationDistrictSql =
+        "SELECT polling_station_president_id, polling_station_secretary_id, polling_station_vocal_id, polling_district_number, establishment_id, election_id FROM  polling_district_in_election_has_polling_station  pdiehps  WHERE  pdiehps . polling_station_president_id  =  @polling_station_president_id ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetPollingStationDistrictRow
+    {
+        public required byte[] PollingStationPresidentId { get; init; }
+        public required byte[] PollingStationSecretaryId { get; init; }
+        public required byte[] PollingStationVocalId { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+        public required byte[] ElectionId { get; init; }
+    };
+
+    public partial class GetPollingStationDistrictArgs
+    {
+        public required byte[] PollingStationPresidentId { get; init; }
+    };
+
+    public async Task<GetPollingStationDistrictRow?> GetPollingStationDistrict(
+        GetPollingStationDistrictArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("polling_station_president_id", args.PollingStationPresidentId);
+            var result = await connection.QueryFirstOrDefaultAsync<GetPollingStationDistrictRow?>(
+                GetPollingStationDistrictSql,
+                queryParams
+            );
+            return result;
+        }
+    }
+
+    public const string GetDepartmentsSql =
+        "SELECT department_id, name FROM  department ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetDepartmentsRow
+    {
+        public required byte[] DepartmentId { get; init; }
+        public required string Name { get; init; }
+    };
+
+    public async Task<List<GetDepartmentsRow>> GetDepartments()
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var result = await connection.QueryAsync<GetDepartmentsRow>(GetDepartmentsSql);
+            return result.AsList();
+        }
+    }
+
+    public const string InsertDepartmentSql =
+        "INSERT INTO  department ( department_id , name ) VALUES ( @department_id, @name ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertDepartmentArgs
+    {
+        public required byte[] DepartmentId { get; init; }
+        public required string Name { get; init; }
+    };
+
+    public async Task InsertDepartment(InsertDepartmentArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("department_id", args.DepartmentId);
+            queryParams.Add("name", args.Name);
+            await connection.ExecuteAsync(InsertDepartmentSql, queryParams);
+        }
+    }
+
+    public const string UpdatePollingDistrictSql =
+        "UPDATE polling_district pd SET  pd . is_open  =  @is_open  WHERE  pd . establishment_id  =  @establishment_id  AND  pd . polling_district_number  =  @polling_district_number ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class UpdatePollingDistrictArgs
+    {
+        public required bool IsOpen { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+        public int? PollingDistrictNumber { get; init; }
+    };
+
+    public async Task UpdatePollingDistrict(UpdatePollingDistrictArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("is_open", args.IsOpen);
+            queryParams.Add("establishment_id", args.EstablishmentId);
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            await connection.ExecuteAsync(UpdatePollingDistrictSql, queryParams);
+        }
+    }
+
+    public const string GetCitizenByCredencialCivicaSql =
+        "SELECT citizen_id, credencial_civica, uruguayan_id, name, surname, birth, password_hash FROM  citizen  WHERE  credencial_civica  =  @credencial_civica ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetCitizenByCredencialCivicaRow
+    {
+        public required byte[] CitizenId { get; init; }
+        public required string CredencialCivica { get; init; }
+        public required int UruguayanId { get; init; }
+        public required string Name { get; init; }
+        public required string Surname { get; init; }
+        public required DateTime Birth { get; init; }
+        public required string PasswordHash { get; init; }
+    };
+
+    public partial class GetCitizenByCredencialCivicaArgs
+    {
+        public required string CredencialCivica { get; init; }
+    };
+
+    public async Task<GetCitizenByCredencialCivicaRow?> GetCitizenByCredencialCivica(
+        GetCitizenByCredencialCivicaArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("credencial_civica", args.CredencialCivica);
+            var result =
+                await connection.QueryFirstOrDefaultAsync<GetCitizenByCredencialCivicaRow?>(
+                    GetCitizenByCredencialCivicaSql,
+                    queryParams
+                );
+            return result;
+        }
+    }
+
+    public const string GetBallotsForElectionsSql =
+        "SELECT ballot.ballot_id, eab . election_id, list_ballot . list_number, boolean_ballot . value, boolean_ballot . total_votes_with_value  FROM  ballot  JOIN  election_allows_ballots  eab  ON  ballot . ballot_id  =  eab . ballot_id  LEFT  JOIN  list_ballot  ON  list_ballot_id  =  eab . ballot_id  LEFT  JOIN  boolean_ballot  ON  boolean_ballot_id  =  eab . ballot_id  WHERE  eab . election_id  IN ( /*SLICE:elections*/ @elections ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetBallotsForElectionsRow
+    {
+        public required byte[] BallotId { get; init; }
+        public required byte[] ElectionId { get; init; }
+        public int? ListNumber { get; init; }
+        public bool? Value { get; init; }
+        public int? TotalVotesWithValue { get; init; }
+    };
+
+    public partial class GetBallotsForElectionsArgs
+    {
+        public required byte[][] Elections { get; init; }
+    };
+
+    public async Task<List<GetBallotsForElectionsRow>> GetBallotsForElections(
+        GetBallotsForElectionsArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var transformedSql = GetBallotsForElectionsSql;
+            transformedSql = Utils.TransformQueryForSliceArgs(
+                transformedSql,
+                args.Elections.Length,
+                "elections"
+            );
+            var queryParams = new Dictionary<string, object?>();
+            for (int i = 0; i < args.Elections.Length; i++)
+                queryParams.Add($"@electionsArg{i}", args.Elections[i]);
+            var result = await connection.QueryAsync<GetBallotsForElectionsRow>(
+                transformedSql,
+                queryParams
+            );
+            return result.AsList();
+        }
+    }
+
+    public const string InsertPartySql =
+        "INSERT INTO  party ( party_id , hedquarters_adress, name ) VALUES ( @party_id, @hedquarters_adress, @name ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertPartyArgs
+    {
+        public required byte[] PartyId { get; init; }
+        public string? HedquartersAdress { get; init; }
+        public string? Name { get; init; }
+    };
+
+    public async Task InsertParty(InsertPartyArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("party_id", args.PartyId);
+            queryParams.Add("hedquarters_adress", args.HedquartersAdress);
+            queryParams.Add("name", args.Name);
+            await connection.ExecuteAsync(InsertPartySql, queryParams);
+        }
+    }
+
+    public const string InsertPartyMemberSql =
+        "INSERT INTO  party_has_citizen ( party_id , role, admission_date, exit_date ) VALUES ( @party_id, @role, @admission_date, @exit_date ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertPartyMemberArgs
+    {
+        public byte[]? PartyId { get; init; }
+        public required PartyHasCitizenRole Role { get; init; }
+        public required DateTime AdmissionDate { get; init; }
+        public DateTime? ExitDate { get; init; }
+    };
+
+    public async Task InsertPartyMember(InsertPartyMemberArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("party_id", args.PartyId);
+            queryParams.Add("role", args.Role.ToEnumString());
+            queryParams.Add("admission_date", args.AdmissionDate);
+            queryParams.Add("exit_date", args.ExitDate);
+            await connection.ExecuteAsync(InsertPartyMemberSql, queryParams);
+        }
+    }
+
+    public const string AssignCandidateToListBallotSql =
+        "INSERT INTO  list_ballot_has_candidate ( list_ballot_id , candidate_id, index_in_list, org ) VALUES ( @list_ballot_id, @candidate_id, @index_in_list, @org ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class AssignCandidateToListBallotArgs
+    {
+        public required byte[] ListBallotId { get; init; }
+        public required byte[] CandidateId { get; init; }
+        public required int IndexInList { get; init; }
+        public required ListBallotHasCandidateOrg Org { get; init; }
+    };
+
+    public async Task AssignCandidateToListBallot(AssignCandidateToListBallotArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("list_ballot_id", args.ListBallotId);
+            queryParams.Add("candidate_id", args.CandidateId);
+            queryParams.Add("index_in_list", args.IndexInList);
+            queryParams.Add("org", args.Org.ToEnumString());
+            await connection.ExecuteAsync(AssignCandidateToListBallotSql, queryParams);
+        }
+    }
+
+    public const string CreateBallotSql =
+        "insert into ballot (ballot_id) values ( @ballot_id ) ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class CreateBallotArgs
+    {
+        public required byte[] BallotId { get; init; }
+    };
+
+    public async Task CreateBallot(CreateBallotArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("ballot_id", args.BallotId);
+            await connection.ExecuteAsync(CreateBallotSql, queryParams);
+        }
+    }
+
+    public const string CreateListBallotSql =
+        "insert into list_ballot (list_ballot_id, list_number) values ( @list_ballot_id , @list_number ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class CreateListBallotArgs
+    {
+        public required byte[] ListBallotId { get; init; }
+        public required int ListNumber { get; init; }
+    };
+
+    public async Task CreateListBallot(CreateListBallotArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("list_ballot_id", args.ListBallotId);
+            queryParams.Add("list_number", args.ListNumber);
+            await connection.ExecuteAsync(CreateListBallotSql, queryParams);
+        }
+    }
+
+    public const string AddListBallotToDepartmentSql =
+        "insert into list_ballot_belongs_to_department (list_id, deparment_id) values ( @list_id , @deparment_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class AddListBallotToDepartmentArgs
+    {
+        public required byte[] ListId { get; init; }
+        public required byte[] DeparmentId { get; init; }
+    };
+
+    public async Task AddListBallotToDepartment(AddListBallotToDepartmentArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("list_id", args.ListId);
+            queryParams.Add("deparment_id", args.DeparmentId);
+            await connection.ExecuteAsync(AddListBallotToDepartmentSql, queryParams);
+        }
+    }
+
+    public const string InsertElectionSql =
+        "insert into election (election_id, description, date) VALUES ( @election_id , @description, @date ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertElectionArgs
+    {
+        public required byte[] ElectionId { get; init; }
+        public required string Description { get; init; }
+        public required DateTime Date { get; init; }
+    };
+
+    public async Task InsertElection(InsertElectionArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("election_id", args.ElectionId);
+            queryParams.Add("description", args.Description);
+            queryParams.Add("date", args.Date);
+            await connection.ExecuteAsync(InsertElectionSql, queryParams);
+        }
+    }
+
+    public const string AllowBallotInElectionSql =
+        "insert into election_allows_ballots (election_id, ballot_id) VALUES ( @election_id , @ballot_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class AllowBallotInElectionArgs
+    {
+        public required byte[] ElectionId { get; init; }
+        public required byte[] BallotId { get; init; }
+    };
+
+    public async Task AllowBallotInElection(AllowBallotInElectionArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("election_id", args.ElectionId);
+            queryParams.Add("ballot_id", args.BallotId);
+            await connection.ExecuteAsync(AllowBallotInElectionSql, queryParams);
+        }
+    }
+
+    public const string InsertLocalitySql =
+        "insert into locality (locality_id, name, type, department_id) VALUES ( @locality_id , @name, @type, @department_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertLocalityArgs
+    {
+        public required byte[] LocalityId { get; init; }
+        public required string Name { get; init; }
+        public required LocalityType Type { get; init; }
+        public required byte[] DepartmentId { get; init; }
+    };
+
+    public async Task InsertLocality(InsertLocalityArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("locality_id", args.LocalityId);
+            queryParams.Add("name", args.Name);
+            queryParams.Add("type", args.Type.ToEnumString());
+            queryParams.Add("department_id", args.DepartmentId);
+            await connection.ExecuteAsync(InsertLocalitySql, queryParams);
+        }
+    }
+
+    public const string InsertZoneSql =
+        "insert into zone (zone_id, name, postal_code, locality_id) VALUES ( @zone_id , @name, @postal_code, @locality_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertZoneArgs
+    {
+        public required byte[] ZoneId { get; init; }
+        public required string Name { get; init; }
+        public required string PostalCode { get; init; }
+        public required byte[] LocalityId { get; init; }
+    };
+
+    public async Task InsertZone(InsertZoneArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("zone_id", args.ZoneId);
+            queryParams.Add("name", args.Name);
+            queryParams.Add("postal_code", args.PostalCode);
+            queryParams.Add("locality_id", args.LocalityId);
+            await connection.ExecuteAsync(InsertZoneSql, queryParams);
+        }
+    }
+
+    public const string InsertEstablishmentSql =
+        "insert into establishment (establishment_id, name, address, zone_id) VALUES ( @establishment_id , @name, @address, @zone_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertEstablishmentArgs
+    {
+        public required byte[] EstablishmentId { get; init; }
+        public required string Name { get; init; }
+        public required string Address { get; init; }
+        public required byte[] ZoneId { get; init; }
+    };
+
+    public async Task InsertEstablishment(InsertEstablishmentArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("establishment_id", args.EstablishmentId);
+            queryParams.Add("name", args.Name);
+            queryParams.Add("address", args.Address);
+            queryParams.Add("zone_id", args.ZoneId);
+            await connection.ExecuteAsync(InsertEstablishmentSql, queryParams);
+        }
+    }
+
+    public const string InsertCircuitSql =
+        "insert into polling_district (polling_district_number, establishment_id) VALUES ( @polling_district_number , @establishment_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertCircuitArgs
+    {
+        public int? PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+    };
+
+    public async Task InsertCircuit(InsertCircuitArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            queryParams.Add("establishment_id", args.EstablishmentId);
+            await connection.ExecuteAsync(InsertCircuitSql, queryParams);
+        }
+    }
+
+    public const string InsertBoardPresidentSql =
+        "insert into polling_station_president (polling_station_president_id, org) VALUES ( @polling_station_president_id , @org ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertBoardPresidentArgs
+    {
+        public required byte[] PollingStationPresidentId { get; init; }
+        public required string Org { get; init; }
+    };
+
+    public async Task InsertBoardPresident(InsertBoardPresidentArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("polling_station_president_id", args.PollingStationPresidentId);
+            queryParams.Add("org", args.Org);
+            await connection.ExecuteAsync(InsertBoardPresidentSql, queryParams);
+        }
+    }
+
+    public const string InsertBoardSecretarySql =
+        "insert into polling_station_secretary (polling_station_secretary_id, org) VALUES ( @polling_station_secretary_id , @org ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertBoardSecretaryArgs
+    {
+        public required byte[] PollingStationSecretaryId { get; init; }
+        public required string Org { get; init; }
+    };
+
+    public async Task InsertBoardSecretary(InsertBoardSecretaryArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("polling_station_secretary_id", args.PollingStationSecretaryId);
+            queryParams.Add("org", args.Org);
+            await connection.ExecuteAsync(InsertBoardSecretarySql, queryParams);
+        }
+    }
+
+    public const string InsertBoardVocalSql =
+        "insert into polling_station_vocal (polling_station_vocal_id, org) VALUES ( @polling_station_vocal_id , @org ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertBoardVocalArgs
+    {
+        public required byte[] PollingStationVocalId { get; init; }
+        public required string Org { get; init; }
+    };
+
+    public async Task InsertBoardVocal(InsertBoardVocalArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("polling_station_vocal_id", args.PollingStationVocalId);
+            queryParams.Add("org", args.Org);
+            await connection.ExecuteAsync(InsertBoardVocalSql, queryParams);
+        }
+    }
+
+    public const string InsertBoardInCircuitElectionSql =
+        "insert into polling_district_in_election_has_polling_station (polling_station_president_id, polling_station_secretary_id , polling_station_vocal_id, polling_district_number, establishment_id, election_id ) VALUES ( @polling_station_president_id, @polling_station_secretary_id, @polling_station_vocal_id, @polling_district_number, @establishment_id, @election_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertBoardInCircuitElectionArgs
+    {
+        public required byte[] PollingStationPresidentId { get; init; }
+        public required byte[] PollingStationSecretaryId { get; init; }
+        public required byte[] PollingStationVocalId { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+        public required byte[] ElectionId { get; init; }
+    };
+
+    public async Task InsertBoardInCircuitElection(InsertBoardInCircuitElectionArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("polling_station_president_id", args.PollingStationPresidentId);
+            queryParams.Add("polling_station_secretary_id", args.PollingStationSecretaryId);
+            queryParams.Add("polling_station_vocal_id", args.PollingStationVocalId);
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            queryParams.Add("establishment_id", args.EstablishmentId);
+            queryParams.Add("election_id", args.ElectionId);
+            await connection.ExecuteAsync(InsertBoardInCircuitElectionSql, queryParams);
+        }
+    }
+
+    public const string AssignCitizenIntoPollingDistrictElectionSql =
+        "insert into citizen_assigned_int_polling_district_election (citizen_id, election_id, polling_district_number, establishment_id) VALUES ( @citizen_id , @election_id, @polling_district_number, @establishment_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class AssignCitizenIntoPollingDistrictElectionArgs
+    {
+        public required byte[] CitizenId { get; init; }
+        public required byte[] ElectionId { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+    };
+
+    public async Task AssignCitizenIntoPollingDistrictElection(
+        AssignCitizenIntoPollingDistrictElectionArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("citizen_id", args.CitizenId);
+            queryParams.Add("election_id", args.ElectionId);
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            queryParams.Add("establishment_id", args.EstablishmentId);
+            await connection.ExecuteAsync(AssignCitizenIntoPollingDistrictElectionSql, queryParams);
+        }
+    }
+
+    public const string InsertMunicipalElectionSql =
+        "insert into municipal (election_id, locality_id) values ( @election_id , @locality_id ); SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class InsertMunicipalElectionArgs
+    {
+        public required byte[] ElectionId { get; init; }
+        public required byte[] LocalityId { get; init; }
+    };
+
+    public async Task InsertMunicipalElection(InsertMunicipalElectionArgs args)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var queryParams = new Dictionary<string, object?>();
+            queryParams.Add("election_id", args.ElectionId);
+            queryParams.Add("locality_id", args.LocalityId);
+            await connection.ExecuteAsync(InsertMunicipalElectionSql, queryParams);
+        }
+    }
+
+    public const string GetMunicipalElectionResultSql =
+        "with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.list_ballot_id, lb.list_number from  vote_contains_ballot  vcb  join  ballot  b  on  b . ballot_id  =  vcb . ballot_id  join  list_ballot  lb  on  lb . list_ballot_id  =  b . ballot_id  join  election_allows_ballots  eab  on  lb . list_ballot_id  =  eab . ballot_id  and  eab . election_id  in  ( /*SLICE:elections*/ @elections ) join  election  e  on  eab . election_id  =  e . election_id  group  by  lb . list_ballot_id , lb . list_number, e . election_id ) select  amount_of_votes, election_id, list_ballot_id, list_number from  votes_per_ballot  order  by  election_id , amount_of_votes desc ; SELECT  LAST_INSERT_ID ( ) ";
+
+    public partial class GetMunicipalElectionResultRow
+    {
+        public required long AmountOfVotes { get; init; }
+        public required byte[] ElectionId { get; init; }
+        public required byte[] ListBallotId { get; init; }
+        public required int ListNumber { get; init; }
+    };
+
+    public partial class GetMunicipalElectionResultArgs
+    {
+        public required byte[][] Elections { get; init; }
+    };
+
+    public async Task<List<GetMunicipalElectionResultRow>> GetMunicipalElectionResult(
+        GetMunicipalElectionResultArgs args
+    )
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            var transformedSql = GetMunicipalElectionResultSql;
+            transformedSql = Utils.TransformQueryForSliceArgs(
+                transformedSql,
+                args.Elections.Length,
+                "elections"
+            );
+            var queryParams = new Dictionary<string, object?>();
+            for (int i = 0; i < args.Elections.Length; i++)
+                queryParams.Add($"@electionsArg{i}", args.Elections[i]);
+            var result = await connection.QueryAsync<GetMunicipalElectionResultRow>(
+                transformedSql,
+                queryParams
+            );
+            return result.AsList();
+        }
     }
 }
