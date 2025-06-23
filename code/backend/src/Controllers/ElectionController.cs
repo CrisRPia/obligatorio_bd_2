@@ -33,7 +33,7 @@ public class ElectionController : Controller
 
         if (filters.HasResults is not null)
         {
-            result = result.Where(e => !e.IsOpen);
+            result = result.Where(e => e.State == Queries.Codegen.ElectionState.Closed);
         }
 
         IEnumerable<Election> parsedResults = result.Select(e =>
@@ -44,8 +44,12 @@ public class ElectionController : Controller
                 DepartmentId = e.DepartmentId is not null ? new Ulid(e.DepartmentId) : null,
                 // Allowed ballots are calculated later on.
                 AllowedBallots = [],
-                // TODO: Get result information
-                Result = null,
+                State = e.State switch {
+                    Queries.Codegen.ElectionState.Open => ElectionState.Open,
+                    Queries.Codegen.ElectionState.Closed => ElectionState.Closed,
+                    Queries.Codegen.ElectionState.NotStarted => ElectionState.NotStarted,
+                    Queries.Codegen.ElectionState.Invalid => throw new InvalidOperationException(),
+                },
                 ElectionId = new Ulid(e.ElectionId),
                 Type = e switch
                 {
@@ -94,12 +98,33 @@ public class ElectionController : Controller
 
         return new() { Items = parsedResults.ToList() };
     }
-}
 
-public enum ElectionState
-{
-    Open,
-    Closed,
+    [HttpPost]
+    [Route("result")]
+    public async Task<ListModel<ElectionResult?>> GetElectionResult(IReadOnlyList<Ulid> electionIds) {
+        var result = await DB.Queries.GetMunicipalElectionResult(new() {
+            Elections = electionIds.Select(e => e.ToByteArray()).ToArray()
+        });
+
+        var elections = result.GroupBy(row => new Ulid(row.ElectionId));
+
+        return new() {
+            Items = elections.Select(group => {
+                return new ElectionResult() {
+                    Type = ElectionType.MunicipalElection,
+                    TotalVotes = (int) group.Select(row => row.AmountOfVotes).Sum(),
+                    ListBasedResult = group.Select(row => new VoteResult<Ballot>() {
+                        VoteCount = (int) row.AmountOfVotes,
+                        Vote = new() {
+                            ListNumber = row.ListNumber,
+                            BallotId = new Ulid(row.ListBallotId),
+                            ElectionId = new Ulid(row.ElectionId)
+                        }
+                    }).ToList()
+                };
+            }).ToArray()
+        };
+    }
 }
 
 public record Filters

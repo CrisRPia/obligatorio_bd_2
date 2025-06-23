@@ -17,7 +17,7 @@ FROM citizen_assigned_int_polling_district_election a
          INNER JOIN election e ON a.election_id = e.election_id
 WHERE a.citizen_id = ?
   AND e.date < CURRENT_DATE()
-  AND e.is_open
+  AND e.state = 'open'
   AND v.election_id IS NULL;
 
 -- name: SelectCitizen :one
@@ -197,7 +197,19 @@ VALUES (?, ?, ?, ?);
 insert into municipal (election_id, locality_id)
 values (?, ?);
 
--- name: GetMunicipalElectionResult :exec
-select count(*), vcb.ballot_id
-from vote_contains_ballot vcb
-         join ballot b on b.ballot_id = vcb.ballot_id
+-- name: GetMunicipalElectionResult :many
+with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.*
+                          from vote_contains_ballot vcb
+                                   join ballot b on b.ballot_id = vcb.ballot_id
+                                   join list_ballot lb on lb.list_ballot_id = b.ballot_id
+                                   join election_allows_ballots eab on lb.list_ballot_id = eab.ballot_id and
+                                                                       eab.election_id in (sqlc.slice(elections))
+                                   join election e on eab.election_id = e.election_id
+                          group by lb.list_ballot_id, lb.list_number, e.election_id)
+select *
+from votes_per_ballot
+order by election_id, amount_of_votes desc;
+;
+
+select *
+from vote_contains_ballot;

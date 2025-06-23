@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS election
     election_id BINARY(16) PRIMARY KEY,
     description TEXT NOT NULL,
     date        DATE NOT NULL,
-    is_open     BOOL NOT NULL DEFAULT TRUE
+    state enum ('notStarted', 'open', 'closed') not null default 'notStarted'
 );
 
 -- Circuito
@@ -159,10 +159,10 @@ CREATE TABLE IF NOT EXISTS citizen_votes_in_polling_district_election
 
 CREATE TABLE IF NOT EXISTS citizen_assigned_int_polling_district_election
 (
-    citizen_id              BINARY(16) NOT NULL REFERENCES citizen (citizen_id),
-    election_id             BINARY(16) NOT NULL REFERENCES election (election_id),
-    polling_district_number INT        NOT NULL REFERENCES polling_district (polling_district_number),
-    establishment_id        BINARY(16) NOT NULL REFERENCES polling_district (establishment_id),
+    citizen_id              BINARY(16) NOT NULL,
+    election_id             BINARY(16) NOT NULL,
+    polling_district_number INT        NOT NULL,
+    establishment_id        BINARY(16) NOT NULL,
     PRIMARY KEY (citizen_id, election_id),
     foreign key (citizen_id) REFERENCES citizen (citizen_id),
     foreign key (election_id) REFERENCES election (election_id),
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS citizen_assigned_int_polling_district_election
 CREATE TABLE IF NOT EXISTS vote
 (
     vote_id BINARY(16) PRIMARY KEY,
-    state   ENUM ('valid', 'out_of_district', 'approved_out_of_district')
+    state   ENUM ('valid', 'out_of_district', 'approved_out_of_district') not null
 );
 
 CREATE TABLE IF NOT EXISTS ballot
@@ -200,14 +200,15 @@ CREATE TABLE IF NOT EXISTS boolean_ballot
 
 CREATE TABLE IF NOT EXISTS list_ballot
 (
-    list_ballot_id BINARY(16) PRIMARY KEY REFERENCES ballot (ballot_id),
-    list_number    INT NOT NULL
+    list_ballot_id BINARY(16) PRIMARY KEY,
+    list_number    INT NOT NULL,
+    foreign key (list_ballot_id) REFERENCES ballot (ballot_id)
 );
 
 CREATE TABLE IF NOT EXISTS list_ballot_has_candidate
 (
-    list_ballot_id BINARY(16) REFERENCES list_ballot (list_ballot_id),
-    candidate_id   BINARY(16) REFERENCES citizen (citizen_id),
+    list_ballot_id BINARY(16)                                                                                not null,
+    candidate_id   BINARY(16)                                                                                not null,
     -- Starts at 0
     index_in_list  INT                                                                                       NOT NULL,
     org            ENUM ('deputy', 'senator', 'departmental_board', 'municipal_councilor', 'main_candidate') NOT NULL,
@@ -267,7 +268,8 @@ CREATE TABLE IF NOT EXISTS municipal
 (
     election_id BINARY(16) PRIMARY KEY,
     locality_id BINARY(16) NOT NULL REFERENCES locality (locality_id),
-    foreign key (election_id) REFERENCES election (election_id)
+    foreign key (election_id) REFERENCES election (election_id),
+    foreign key (locality_id) REFERENCES locality (locality_id)
 );
 
 CREATE TABLE IF NOT EXISTS ballotage
@@ -278,8 +280,9 @@ CREATE TABLE IF NOT EXISTS ballotage
 
 CREATE TABLE IF NOT EXISTS election_allows_ballots
 (
-    election_id BINARY(16) NOT NULL REFERENCES election (election_id),
-    ballot_id   BINARY(16) NOT NULL REFERENCES ballot (ballot_id),
+    election_id BINARY(16) NOT NULL,
+    ballot_id   BINARY(16) NOT NULL,
+    primary key (election_id, ballot_id),
     foreign key (election_id) REFERENCES election (election_id),
     foreign key (ballot_id) REFERENCES ballot (ballot_id)
 );

@@ -19,6 +19,11 @@ export interface Ballot {
   isYes?: boolean | null;
 }
 
+export interface BallotVoteResult {
+  voteCount: number;
+  vote: Ballot;
+}
+
 export interface Ballots {
   items: Ballot[];
 }
@@ -34,6 +39,8 @@ export interface BaseCitizen {
 
 export interface BooleanReturn {
   success: boolean;
+  /** @nullable */
+  message?: string | null;
 }
 
 export interface BooleanVote {
@@ -46,7 +53,6 @@ export interface BooleanVote {
 }
 
 export interface BooleanVoteVoteResult {
-  percentage: number;
   voteCount: number;
   vote: BooleanVote;
 }
@@ -58,31 +64,6 @@ export interface Building {
   /** @minLength 1 */
   address: string;
   zone: Zone;
-}
-
-export interface Candidate {
-  candidateId: string;
-  /** @minLength 1 */
-  name: string;
-  /** @minLength 1 */
-  surname: string;
-  position: number;
-}
-
-export interface CandidateList {
-  /**
-   * The ordered list of candidates on this voting list. The first candidate is the main candidate.
-   * @minItems 1
-   */
-  candidates: Candidate[];
-  party: Party;
-  listNumber: number;
-}
-
-export interface CandidateListVoteResult {
-  percentage: number;
-  voteCount: number;
-  vote: CandidateList;
 }
 
 export interface Circuit {
@@ -113,7 +94,7 @@ export interface Election {
   electionId: string;
   /** @nullable */
   departmentId?: string | null;
-  result?: ElectionResult;
+  state: ElectionState;
 }
 
 export interface ElectionListModel {
@@ -125,14 +106,19 @@ export interface ElectionResult {
   /** @nullable */
   booleanResult?: BooleanVoteVoteResult[] | null;
   /** @nullable */
-  listBasedResult?: CandidateListVoteResult[] | null;
+  listBasedResult?: BallotVoteResult[] | null;
   totalVotes: number;
+}
+
+export interface ElectionResultListModel {
+  items: ElectionResult[];
 }
 
 export type ElectionState = (typeof ElectionState)[keyof typeof ElectionState];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ElectionState = {
+  NotStarted: "NotStarted",
   Open: "Open",
   Closed: "Closed",
 } as const;
@@ -793,6 +779,46 @@ export const getElections = async (
     status: res.status,
     headers: res.headers,
   } as getElectionsResponse;
+};
+
+export type postElectionsResultResponse200 = {
+  data: ElectionResultListModel;
+  status: 200;
+};
+
+export type postElectionsResultResponseComposite =
+  postElectionsResultResponse200;
+
+export type postElectionsResultResponse =
+  postElectionsResultResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostElectionsResultUrl = () => {
+  return `http://localhost:8080/elections/result`;
+};
+
+export const postElectionsResult = async (
+  postElectionsResultBody: string[],
+  options?: RequestInit,
+): Promise<postElectionsResultResponse> => {
+  const res = await fetch(getPostElectionsResultUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(postElectionsResultBody),
+  });
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data: postElectionsResultResponse["data"] = body
+    ? JSON.parse(body)
+    : {};
+
+  return {
+    data,
+    status: res.status,
+    headers: res.headers,
+  } as postElectionsResultResponse;
 };
 
 /**

@@ -96,7 +96,7 @@ public class Election
     public required byte[] ElectionId { get; init; }
     public required string Description { get; init; }
     public required DateTime Date { get; init; }
-    public required bool IsOpen { get; init; }
+    public required ElectionState State { get; init; }
 };
 
 public class PollingDistrict
@@ -142,7 +142,7 @@ public class CitizenAssignedIntPollingDistrictElection
 public class Vote
 {
     public required byte[] VoteId { get; init; }
-    public VoteState? State { get; init; }
+    public required VoteState State { get; init; }
 };
 
 public class Ballot
@@ -171,8 +171,8 @@ public class ListBallot
 
 public class ListBallotHasCandidate
 {
-    public byte[]? ListBallotId { get; init; }
-    public byte[]? CandidateId { get; init; }
+    public required byte[] ListBallotId { get; init; }
+    public required byte[] CandidateId { get; init; }
     public required int IndexInList { get; init; }
     public required ListBallotHasCandidateOrg Org { get; init; }
 };
@@ -253,6 +253,33 @@ public static class LocalityTypeExtensions
     };
 
     public static string ToEnumString(this LocalityType me)
+    {
+        return EnumToString[me];
+    }
+}
+
+public enum ElectionState
+{
+    Invalid = 0, // reserved for invalid enum value
+    NotStarted = 1,
+    Open = 2,
+    Closed = 3,
+}
+
+public static class ElectionStateExtensions
+{
+    private static readonly Dictionary<ElectionState, string> EnumToString = new Dictionary<
+        ElectionState,
+        string
+    >()
+    {
+        [ElectionState.Invalid] = string.Empty,
+        [ElectionState.NotStarted] = "notStarted",
+        [ElectionState.Open] = "open",
+        [ElectionState.Closed] = "closed",
+    };
+
+    public static string ToEnumString(this ElectionState me)
     {
         return EnumToString[me];
     }

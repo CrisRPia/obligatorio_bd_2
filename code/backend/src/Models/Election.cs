@@ -34,6 +34,12 @@ public enum ElectionType
     Runoff,
 }
 
+public enum ElectionState {
+    NotStarted,
+    Open,
+    Closed
+}
+
 public record Election
 {
     [Required]
@@ -50,7 +56,8 @@ public record Election
 
     public Ulid? DepartmentId { get; init; }
 
-    public ElectionResult? Result { get; init; }
+    [Required]
+    public required ElectionState State { get; init; }
 }
 
 public record ElectionResult
@@ -59,7 +66,7 @@ public record ElectionResult
     public required ElectionType Type { get; init; }
 
     public IEnumerable<VoteResult<BooleanVote>>? BooleanResult { get; init; }
-    public IEnumerable<VoteResult<CandidateList>>? ListBasedResult { get; init; }
+    public IEnumerable<VoteResult<Ballot>>? ListBasedResult { get; init; }
 
     [Required]
     public int TotalVotes { get; init; }
@@ -77,9 +84,6 @@ public record BooleanVote
 
 public record VoteResult<T>
 {
-    [Required]
-    public required float Percentage { get; init; }
-
     [Required]
     public required int VoteCount { get; init; }
 

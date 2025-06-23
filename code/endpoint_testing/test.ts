@@ -1,9 +1,10 @@
 import * as backend from "./backend.api.ts";
+import { deepLog, pickRandom } from "./helpers.ts";
 
 async function main() {
     // Fake the state. Some aspects of this are random.
-    const { data, status, headers } = await backend.postDebugFakeInit();
-    const president = data.tables[0].president;
+    const response = await backend.postDebugFakeInit();
+    const president = response.data.tables[0].president;
 
     // Login as board president
     const presidentCredentials = (
@@ -18,38 +19,40 @@ async function main() {
         Authorization: `Bearer ${presidentCredentials.jwtToken}`,
     });
 
-    let authorizationResult = await backend.postTableCitizenIdAuthorize(
-        president.citizenId,
-        {
-            authorizeObserved: true,
-        },
-        { headers: presidentHeaders },
-    );
+    let openState = await backend.putTableOpen({ headers: presidentHeaders });
 
-    console.dir(authorizationResult, { depth: null });
+    deepLog({ openState });
 
-    let availableElections = (await backend.getElections({
-        AvailableForUser: president.citizenId,
-    })).data;
-
-    // console.dir(availableElections, { depth: null });
-
-    for (const election of availableElections.items) {
-        let voteResult = await backend.postCitizenCitizenIdVote(president.citizenId, { items: [
+    for (const voter of response.data.createdCitizens) {
+        console.log(`Voting for ${voter.name}`);
+        await backend.postTableCitizenIdAuthorize(
+            voter.citizenId,
             {
-                ballotId: election.allowedBallots[0].ballotId,
-                electionId: election.electionId,
-            }
-        ]});
+                authorizeObserved: true,
+            },
+            { headers: presidentHeaders },
+        );
 
-        console.dir(voteResult, { depth: null });
+        let availableElections = (await backend.getElections({
+            AvailableForUser: president.citizenId,
+        })).data;
+
+        for (const election of availableElections.items) {
+            await backend.postCitizenCitizenIdVote(voter.citizenId, { items: [
+                {
+                    ballotId: pickRandom(election.allowedBallots)!.ballotId,
+                    electionId: election.electionId,
+                }
+            ]});
+        }
     }
 
     let closeResult = await backend.putTableClose({ headers: presidentHeaders });
+    deepLog({ closeResult });
 
-    console.dir(closeResult, { depth: null });
-
-    // TODO: GET RESULTS
+    console.log("ElectionId: ", response.data.electionId);
+    let electionResult = await backend.postElectionsResult([response.data.electionId])
+    deepLog({ electionResult });
 }
 
 main();
