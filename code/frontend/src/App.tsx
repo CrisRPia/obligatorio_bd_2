@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login.tsx';
 import InicioVotante from './pages/InicioVotante.tsx';
 import EmitirVoto from './pages/EmitirVoto.tsx';
+import AbrirMesa from './pages/AbrirMesa.tsx';
 import PanelMesa from './pages/PanelMesa.tsx';
 import Reportes from './pages/Reportes.tsx';
 import Unauthorized from './pages/Unauthorized.tsx';
@@ -42,11 +43,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Ruta de Login */}
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/votar" replace /> : <Login />} // Redirige al voto si ya está autenticado
-        />
+
 
         {/* --- Rutas para Ciudadanos Votantes --- */}
 
@@ -80,21 +77,46 @@ const App: React.FC = () => {
         />
 
 
-        
 
-        
+
+
 
         {/* --- Rutas para Presidentes de Mesa --- */}
 
+
+
+        {/* Ruta de Login */}
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/mesa/abrir" replace /> : <Login />} // Redirige al flujo de presidente si ya está autenticado
+        />
+
+
+
+        {/* Abrir Mesa */}
+        <Route
+          path="/mesa/abrir"
+          element={
+            <ProtectedRoute allowedUserTypes={['polling_station']}>
+              <AbrirMesa />
+            </ProtectedRoute>
+          }
+        />
+
+
+
         {/* Panel de Mesa */}
         <Route
-          path="/mesa"
+          path="/mesa/panel"
           element={
             <ProtectedRoute allowedUserTypes={['polling_station']}>
               <PanelMesa />
             </ProtectedRoute>
           }
         />
+
+
+
 
         {/* Reportes */}
         <Route

@@ -27,9 +27,9 @@ const Login: React.FC = () => {
 
   const isFormValid = (): boolean => {
     const credencialRegex = /^[A-Z]{3}\d+$/;
-    return formData.credencialCivica.trim() !== '' && 
-           formData.uruguayanId.trim() !== '' && 
-           credencialRegex.test(formData.credencialCivica.toUpperCase());
+    return formData.credencialCivica.trim() !== '' &&
+      formData.uruguayanId.trim() !== '' &&
+      credencialRegex.test(formData.credencialCivica.toUpperCase());
   };
 
   const tryLogin = async (loginFunction: Function, userType: string) => {
@@ -45,9 +45,9 @@ const Login: React.FC = () => {
         localStorage.setItem('authToken', response.data.jwtToken);
         localStorage.setItem('userType', userType);
         localStorage.setItem('userData', JSON.stringify(response.data.content));
-        
+
         setSuccess('Login exitoso. Redirigiendo...');
-        
+
         // Redirigir según el tipo de usuario
         setTimeout(() => {
           if (userType === 'polling_station') {
@@ -56,7 +56,7 @@ const Login: React.FC = () => {
             window.location.href = '/policia';
           }
         }, 1500);
-        
+
         return true;
       }
     } catch (err) {
@@ -67,7 +67,7 @@ const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isFormValid()) return;
 
     setIsLoading(true);
@@ -91,7 +91,7 @@ const Login: React.FC = () => {
 
       // Si ninguno funciona, mostrar error
       setError('Credenciales incorrectas. Por favor, verifica tus datos.');
-      
+
     } catch (err) {
       console.error('Error en login:', err);
       setError('Error de conexión. Por favor, intenta nuevamente.');
@@ -184,11 +184,10 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading || !isFormValid()}
-            className={`w-full py-3 px-4 rounded-lg font-medium focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all ${
-              isFormValid() && !isLoading
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            className={`w-full py-3 px-4 rounded-lg font-medium focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all ${isFormValid() && !isLoading
+              ? 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
