@@ -7,23 +7,13 @@ namespace backend.src.Services;
 // Somewhat ai generated.
 public class AppendAuthorizeToSummaryOperationFilter : IOperationFilter
 {
-    public void Apply(
-        OpenApiOperation operation,
-        OperationFilterContext context
-    )
+    public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var endpointMetadata = context
-            .ApiDescription
-            .ActionDescriptor
-            .EndpointMetadata;
+        var endpointMetadata = context.ApiDescription.ActionDescriptor.EndpointMetadata;
 
-        var anonymousAttributes = endpointMetadata
-            .OfType<AllowAnonymousAttribute>()
-            .ToList();
+        var anonymousAttributes = endpointMetadata.OfType<AllowAnonymousAttribute>().ToList();
 
-        var authorizeAttributes = endpointMetadata
-            .OfType<AuthorizeAttribute>()
-            .ToList();
+        var authorizeAttributes = endpointMetadata.OfType<AuthorizeAttribute>().ToList();
 
         if (!anonymousAttributes.Any() && !authorizeAttributes.Any())
             return;
@@ -40,9 +30,7 @@ public class AppendAuthorizeToSummaryOperationFilter : IOperationFilter
         {
             // Split roles string by comma and trim whitespace
             var roleList = roles
-                .SelectMany(r =>
-                    r?.Split(',').Select(role => role.Trim()) ?? []
-                )
+                .SelectMany(r => r?.Split(',').Select(role => role.Trim()) ?? [])
                 .Distinct();
             operation.Summary += " - Roles: " + string.Join(", ", roleList);
         }

@@ -1,4 +1,5 @@
 using backend.src.Queries.Codegen;
+using MySqlConnector;
 
 namespace backend.src.Queries;
 
@@ -22,7 +23,6 @@ public static class DB
             var output = Environment.GetEnvironmentVariable(envPath);
             if (output is not string verifiedOutput)
             {
-                Console.WriteLine();
                 throw new InvalidOperationException(
                     $"You must set the {envPath} environment variable."
                 );
@@ -43,6 +43,13 @@ public static class DB
     private static QueriesSql CreateQueryInstance()
     {
         return new QueriesSql(CreateConnectionStringFromEnv());
+    }
+
+    public static MySqlConnection NewOpenConnection()
+    {
+        var output = new MySqlConnection(CreateConnectionStringFromEnv());
+        output.Open();
+        return output;
     }
 
     public static QueriesSql Queries { get; } = CreateQueryInstance();

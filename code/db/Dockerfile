@@ -7,7 +7,7 @@ EXPOSE 3306
 # Copy the initialization script into the directory
 # where the official MySQL image looks for initialization scripts.
 # These scripts are executed when the container is first created and the database is initialized.
-COPY ./init/init.sql /docker-entrypoint-initdb.d/
+COPY ./init/ddl.sql /docker-entrypoint-initdb.d/
 
 # The official MySQL image has a default ENTRYPOINT that handles database initialization
 # and starting the server, including running scripts from /docker-entrypoint-initdb.d/.

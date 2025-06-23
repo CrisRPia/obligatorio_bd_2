@@ -1,9 +1,10 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 
 namespace backend.src.Models;
 
-public record ListModel<T>
+public partial record ListModel<T>
 {
     [Required]
-    public required IEnumerable<T> Items { get; init; }
+    public required IReadOnlyList<T> Items { get; init; }
 }

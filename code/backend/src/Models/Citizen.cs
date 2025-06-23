@@ -5,11 +5,11 @@ namespace backend.src.Models;
 
 public record BaseCitizen
 {
-    [Required, CredencialCivicaAttribute]
+    [Required, CredencialCivica]
     public required string CredencialCivica { get; init; }
 
-    [Required, UruguayanIdAttribute]
-    public required string UruguayanId { get; init; }
+    [Required, UruguayanId]
+    public required int UruguayanId { get; init; }
 }
 
 public record PartialCitizen : BaseCitizen
@@ -29,4 +29,7 @@ public record FullCitizen : BaseCitizen
 
     [Required]
     public required string Surname { get; init; }
+
+    [Required]
+    public required Ulid CitizenId { get; init; }
 }

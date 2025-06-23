@@ -7,13 +7,8 @@ curl http://localhost:8080/swagger/v1/swagger.json \
 # Generate frontend client
 orval --config ./frontend_codegen/orval.config.ts
 
-# Compile to js
-tsc -p ./frontend_codegen/temp/
-
-# Move compiled code to frontend project
-mv ./frontend_codegen/temp/*.js \
-    ./frontend_codegen/temp/*.d.ts \
-    ../frontend/codegen/
+# Move compiled code to where it's needed
+cp ./frontend_codegen/temp/backend.api.ts ../endpoint_testing/
 
 # Remove leftovers
 rm ./frontend_codegen/temp/*.ts

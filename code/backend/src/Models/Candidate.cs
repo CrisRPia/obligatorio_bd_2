@@ -5,7 +5,7 @@ namespace backend.src.Models;
 public record Candidate
 {
     [Required]
-    public required Guid CandidateId { get; init; }
+    public required Ulid CandidateId { get; init; }
 
     [Required]
     public required string Name { get; init; }
