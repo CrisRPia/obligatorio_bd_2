@@ -56,22 +56,17 @@ const App: React.FC = () => {
         <Route
           path="/votar/:circuitId"
           element={
+            <EmitirVoto />
+            /*
             <ProtectedRoute allowedUserTypes={['voter']}>
               <EmitirVoto />
             </ProtectedRoute>
+            */
           }
         />
 
 
-        {/* Seleccionar Circuito */}
-        <Route
-          path="/seleccionar-circuito"
-          element={
-            <ProtectedRoute allowedUserTypes={['voter']}>
-              <SeleccionarCircuito />
-            </ProtectedRoute>
-          }
-        />
+        
 
         {/* Pantalla de "Ya votó" */}
         <Route
