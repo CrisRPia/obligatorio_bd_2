@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { postAuthPollingStationLogin } from '@codegen/backend.api';
+import * as backend from "@codegen/backend.api";
+import { SessionStorage } from '@/services/sessionStorageService';
 
-interface LoginFormData {
-  username: string;
-  password: string;
-}
+type LoginFormData = backend.LoginCredentials;
 
 const Login: React.FC = () => {
-  const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
-    password: ''
+  const [formData, setFormData] = useState<Partial<LoginFormData>>({
+    credencialCivica: undefined,
+    password: undefined,
+    uruguayanId: undefined,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,32 +23,29 @@ const Login: React.FC = () => {
     if (error) setError(null);
   };
 
-  const isFormValid = (): boolean => {
-    return formData.username.trim() !== '' && formData.password.trim() !== '';
+  const isFormValid = (data: Partial<LoginFormData>): data is LoginFormData => {
+    return data.password !== undefined && data.uruguayanId !== undefined && /^[A-Z]{3}\d+$/.test(data.credencialCivica ?? "");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid()) return;
+    if (!isFormValid(formData)) return;
 
     setIsLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const response = await postAuthPollingStationLogin({
-        username: formData.username, //No hay endpoint que reciba username y password aún
-        password: formData.password
-      });
+      const response = await backend.postAuth(formData);
 
       if (response.status === 200) {
-        localStorage.setItem('authToken', response.data.jwtToken);
-        localStorage.setItem('userType', 'polling_station');
-        localStorage.setItem('userData', JSON.stringify(response.data.content));
+        SessionStorage.set('authToken', response.data.jwtToken);
+        SessionStorage.set('userType', 'polling_station');
+        SessionStorage.set('userData', response.data.user);
         setSuccess('Login exitoso. Redirigiendo...');
 
         setTimeout(() => {
-          window.location.href = '/mesa-electoral';
+          window.location.href = '/mesa/abrir';
         }, 1000);
       } else {
         setError('Credenciales incorrectas. Intenta nuevamente.');
@@ -77,16 +73,32 @@ const Login: React.FC = () => {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Usuario
+            <label htmlFor="credencialCivica" className="block text-sm font-medium text-gray-700 mb-2">
+              Credencial Cívica
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="credencialCivica"
+              name="credencialCivica"
+              value={formData.credencialCivica}
               onChange={handleInputChange}
               placeholder="Ej: presidente123"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="uruguayanId" className="block text-sm font-medium text-gray-700 mb-2">
+              Cédula de Identidad
+            </label>
+            <input
+              type="number"
+              id="uruguayanId"
+              name="uruguayanId"
+              value={formData.uruguayanId}
+              onChange={handleInputChange}
+              placeholder="Ej: 12345678"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
               disabled={isLoading}
             />
@@ -132,9 +144,9 @@ const Login: React.FC = () => {
 
           <button
             type="submit"
-            disabled={isLoading || !isFormValid()}
+            disabled={isLoading || !isFormValid(formData)}
             className={`w-full py-3 px-4 rounded-lg font-medium focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all ${
-              isFormValid() && !isLoading
+              isFormValid(formData) && !isLoading
                 ? 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}

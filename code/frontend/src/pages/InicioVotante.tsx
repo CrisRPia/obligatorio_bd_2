@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { postAuthPollingStationLogin } from '@codegen/backend.api';
+import * as backend from "@codegen/backend.api";
+import { SessionStorage } from '@/services/sessionStorageService';
 
 const InicioVotante: React.FC = () => {
     const [credencialCivica, setCredencialCivica] = useState('');
@@ -17,7 +18,7 @@ const InicioVotante: React.FC = () => {
         const cc = credencialCivica.trim().toUpperCase();
 
         if (!isValidCredencial(cc)) {
-            setError('Credencial inválida. Formato esperado: ABC123456');
+            setError('Credencial inválida. Formato esperado: ABC12345');
             return;
         }
 
@@ -25,22 +26,12 @@ const InicioVotante: React.FC = () => {
         setError(null);
 
         try {
-            const response = await postAuthPollingStationLogin({
-                credencialCivica: cc,
-                uruguayanId: "SIMULADO",
-            });
+            // Guardar token y tipo "voter"
+            SessionStorage.set('userType', 'voter');
+            SessionStorage.set('credencialCivica', credencialCivica);
 
-            if (response.status === 200) {
-                // Guardar token y tipo "voter"
-                localStorage.setItem('authToken', response.data.jwtToken);
-                localStorage.setItem('userType', 'voter');
-                localStorage.setItem('userData', JSON.stringify(response.data.content));
-
-                // Redirigir a emitir voto
-                navigate(`/votar/${circuitId}/emitir`);
-            } else {
-                setError('No se pudo validar la credencial.');
-            }
+            // Redirigir a emitir voto
+            navigate(`/votar/${circuitId}`);
         } catch (err) {
             console.error('Error al validar votante:', err);
             setError('Error de conexión. Intenta de nuevo.');
@@ -77,8 +68,8 @@ const InicioVotante: React.FC = () => {
                         type="submit"
                         disabled={isLoading || !credencialCivica.trim()}
                         className={`w-full py-3 px-4 rounded-md text-white font-semibold transition ${isLoading
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-indigo-600 hover:bg-indigo-700'
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-indigo-600 hover:bg-indigo-700'
                             }`}
                     >
                         {isLoading ? 'Validando...' : 'Continuar'}

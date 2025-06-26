@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { putDepartmentsDepartmentIdCircuitsCircuitIdAuthorizeVoteVoteId } from '@codegen/backend.api';
-import type { FullCitizen } from '@codegen/backend.api.d';
+import * as backend from '@codegen/backend.api';
+import { SessionStorage } from '@/services/sessionStorageService';
+
 
 const PanelMesa: React.FC = () => {
   const [credencial, setCredencial] = useState('');
-  const [votante, setVotante] = useState<FullCitizen | null>(null);
+  const [votante, setVotante] = useState<backend.FullCitizen | null>(null);
   const [mensaje, setMensaje] = useState('');
   const [observado, setObservado] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,12 +20,13 @@ const PanelMesa: React.FC = () => {
     // Simulación de búsqueda
     setTimeout(() => {
       if (credencial.toUpperCase() === 'ABC123') {
-        const dummyVotante: FullCitizen = {
+        const dummyVotante: backend.FullCitizen = {
           birthDate: '1990-01-01',
           credencialCivica: 'ABC123',
           name: 'Juan',
           surname: 'Pérez',
-          uruguayanId: '12345678'
+          uruguayanId: 12345678,
+          citizenId: "",
         };
         setVotante(dummyVotante);
 
@@ -43,14 +45,18 @@ const PanelMesa: React.FC = () => {
   const handleAutorizar = async () => {
     if (!votante) return;
 
+    let presidentHeaders = { headers: new Headers({
+        Authorization: `Bearer ${SessionStorage.get("authToken")}`,
+    }) };
+
     const voteId = votante.credencialCivica; // Suponemos que esto es válido
     try {
-      const { status } = await putDepartmentsDepartmentIdCircuitsCircuitIdAuthorizeVoteVoteId(
-        departmentId,
-        circuitId,
-        voteId,
-        {},
-        {}
+      const { status } = await backend.postTableCitizenIdAuthorize(
+        votante.citizenId,
+        {
+          authorizeObserved: true // TODO: sacar este dato del form que llena el funcionario
+        },
+        presidentHeaders
       );
 
       if (status === 200) {

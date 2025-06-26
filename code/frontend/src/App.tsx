@@ -9,11 +9,12 @@ import AbrirMesa from './pages/AbrirMesa.tsx';
 import PanelMesa from './pages/PanelMesa.tsx';
 import Reportes from './pages/Reportes.tsx';
 import Unauthorized from './pages/Unauthorized.tsx';
+import { SessionStorage } from './services/sessionStorageService.ts';
 
 // Hook para verificar si el usuario está autenticado y obtener su tipo de usuario
 const useAuth = () => {
-  const token = localStorage.getItem('authToken');
-  const userType = localStorage.getItem('userType'); // 'voter', 'polling_station', 'admin'
+  const token = SessionStorage.get('authToken');
+  const userType = SessionStorage.get('userType'); // 'voter', 'polling_station', 'admin'
   return { isAuthenticated: !!token, userType };
 };
 
@@ -52,12 +53,9 @@ const App: React.FC = () => {
         <Route
           path="/votar/:circuitId/ingresar"
           element={
-            <InicioVotante />
-            /*
             <ProtectedRoute allowedUserTypes={['voter']}>
               <InicioVotante />
             </ProtectedRoute>
-            */
           }
         />
 
@@ -67,12 +65,9 @@ const App: React.FC = () => {
         <Route
           path="/votar/:circuitId"
           element={
-            <EmitirVoto />
-            /*
             <ProtectedRoute allowedUserTypes={['voter']}>
               <EmitirVoto />
             </ProtectedRoute>
-            */
           }
         />
 
