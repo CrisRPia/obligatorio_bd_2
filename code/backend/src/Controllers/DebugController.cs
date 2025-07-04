@@ -286,29 +286,6 @@ public class DebugController(IFakeService fake, ICitizenService citizen, IJwtSer
         fake.FakeCitizens(Enumerable.Range(startUid, endUid - startUid));
 
     [HttpPost]
-    [Route("JWT")]
-    public AuthResponse<ValueTuple> SetTokenInfo(IReadOnlyList<Role> roles)
-    {
-        var data = new EmbeddedJwtData()
-        {
-            CircuitId = new() { EstablishmentId = Ulid.NewUlid(), CircuitNumber = 1 },
-            Roles = roles,
-            TokenId = Ulid.NewUlid(),
-            UserId = Ulid.NewUlid(),
-            Username = "Fake username.",
-        };
-
-        var token = jwtService.GenerateJwtToken(data);
-        return new AuthResponse<ValueTuple>()
-        {
-            JwtToken = token,
-            CitizenId = data.UserId,
-            User = ValueTuple.Create(),
-            Roles = data.Roles,
-        };
-    }
-
-    [HttpPost]
     [Route("Playground")]
     public async Task<object> Playground()
     {

@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using backend.src.Models;
 using backend.src.Queries;
-using backend.src.Queries.Codegen;
 using backend.src.Services;
 using Isopoh.Cryptography.Argon2;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +10,7 @@ namespace backend.src.Controllers;
 
 [ApiController]
 [Route("auth/")]
-public class AuthController(IJwtService jwt) : Controller
+public class AuthController(IJwtService jwt, IAuthService authService) : Controller
 {
     [HttpGet]
     [Route("JWT")]
@@ -20,65 +19,46 @@ public class AuthController(IJwtService jwt) : Controller
         return jwt.GetData(HttpContext);
     }
 
-    [Route("")]
+    [Route("voter")]
     [HttpPost]
-    public async Task<AuthResponse<FullCitizen>> Login(LoginCredentials citizen)
-    {
-        var select = await DB.Queries.LoginCitizen(
-            new QueriesSql.LoginCitizenArgs
-            {
-                CredencialCivica = citizen.CredencialCivica,
-                UruguayanId = citizen.UruguayanId,
-            }
-        );
-
-        if (select is null || !Argon2.Verify(select.PasswordHash, citizen.Password))
-            throw new NotImplementedException();
-
-        var rolesMap = new Dictionary<Role, bool>
-        {
-            [Role.Admin] = true, // TODO
-            [Role.Voter] = select.CitizenId is not null, // TODO
-            [Role.Police] = select.PoliceOfficerId is not null,
-            [Role.BoardPresident] = select.PollingStationPresidentId is not null,
-            [Role.BoardSecretary] = select.PollingStationSecretaryId is not null,
-            [Role.BoardVocal] = select.PollingStationVocalId is not null,
-        };
-
-        var roles = rolesMap.Where(kv => kv.Value).Select(kv => kv.Key).ToImmutableList();
+    public async Task<AuthResponse<BooleanReturn>> LoginVoter(LoginCredentials citizen) {
+        var result = await authService.Login(citizen);
 
         var token = jwt.GenerateJwtToken(
             new()
             {
-                Username = $"{select.Name} {select.Surname}",
-                UserId = new Ulid(select.CitizenId),
-                Roles = roles,
+                Username = "Votante",
+                UserId = result.User.CitizenId,
+                Roles = [Role.Voter],
                 TokenId = null,
-                CircuitId = select.PollingDistrictNumber is int pollingDistrictNumber
-                    ? new()
-                    {
-                        EstablishmentId = new Ulid(select.EstablishmentId),
-                        CircuitNumber = pollingDistrictNumber,
-                    }
-                    : null,
+                CircuitId = result.Circuit.CircuitId
             }
         );
 
-        return new AuthResponse<FullCitizen>
-        {
+        return new() {
+            Circuit = result.Circuit,
             JwtToken = token,
-            Roles = roles,
-            CitizenId = new Ulid(select.CitizenId),
-            User = new FullCitizen
-            {
-                CitizenId = new Ulid(select.CitizenId),
-                BirthDate = DateOnly.FromDateTime(select.Birth),
-                CredencialCivica = select.CredencialCivica,
-                Name = select.Name,
-                Surname = select.Surname,
-                UruguayanId = select.UruguayanId,
-            },
+            Roles = [Role.Voter],
+            User = BooleanReturn.True,
         };
+    }
+
+    [Route("table")]
+    [HttpPost]
+    public async Task<AuthResponse<FullCitizen>> LoginTable(LoginCredentials citizen) {
+        var result = await authService.Login(citizen);
+        var token = jwt.GenerateJwtToken(
+            new()
+            {
+                Username = $"{result.User.Name} {result.User.Surname}",
+                UserId = result.User.CitizenId,
+                Roles = result.Roles,
+                TokenId = null,
+                CircuitId = result.Circuit.CircuitId
+            }
+        );
+
+        return result with { JwtToken = token };
     }
 }
 
@@ -97,8 +77,8 @@ public record AuthResponse<T>
     public required IEnumerable<Role> Roles { get; set; }
 
     [Required]
-    public required Ulid CitizenId { get; set; }
+    public required T User { get; set; }
 
     [Required]
-    public required T User { get; set; }
+    public required Circuit Circuit { get; set; }
 }

@@ -33,22 +33,28 @@ SELECT c.*
      , pss.polling_station_secretary_id
      , pdiehps.polling_district_number
      , pdiehps.establishment_id
+     , e.address
+     , e.name as 'establishment_name'
+     , z.zone_id
+     , z.postal_code
+     , l.locality_id
+     , l.type
+     , l.name as 'locality_name'
+     , d.department_id
+     , d.name as 'department_name'
 FROM citizen c
-         LEFT JOIN police_officer po ON po.police_officer_id = c.citizen_id
-         LEFT JOIN polling_station_president psp ON psp.polling_station_president_id = c.citizen_id
-         LEFT JOIN polling_station_vocal psv ON psv.polling_station_vocal_id = c.citizen_id
-         LEFT JOIN polling_station_secretary pss ON pss.polling_station_secretary_id = c.citizen_id
-         LEFT JOIN polling_district_in_election_has_polling_station pdiehps
-                   ON pdiehps.polling_station_president_id = c.citizen_id
+         JOIN police_officer po ON po.police_officer_id = c.citizen_id
+         JOIN polling_station_president psp ON psp.polling_station_president_id = c.citizen_id
+         JOIN polling_station_vocal psv ON psv.polling_station_vocal_id = c.citizen_id
+         JOIN polling_station_secretary pss ON pss.polling_station_secretary_id = c.citizen_id
+         JOIN polling_district_in_election_has_polling_station pdiehps
+              ON pdiehps.polling_station_president_id = c.citizen_id
+         join establishment e on e.establishment_id = pdiehps.establishment_id
+         join zone z on e.zone_id = z.zone_id
+         join locality l on z.locality_id = l.locality_id
+         join department d on l.department_id = d.department_id
 WHERE c.credencial_civica = ?
   AND c.uruguayan_id = ?;
-
-SELECT *
-FROM citizen c
-WHERE c.credencial_civica = 'NEU10000'
-  AND c.uruguayan_id = 83500295
-  AND c.password_hash =
-      '$argon2id$v=19$m=65536,t=3,p=1$ER7MtGNwv3p9b8aNV2mw2A$iQmB1nOEZOTszZ55+7OToKFiOz2nNbofL1iEMEi1/pw';
 
 -- name: InsertVote :exec
 INSERT

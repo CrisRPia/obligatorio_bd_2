@@ -10,13 +10,15 @@ namespace backend.src.Controllers;
 
 [ApiController]
 [Route("citizen/")]
-public class CitizenController(ICitizenCacheService CitizenCache) : Controller
+public class CitizenController(ICitizenCacheService CitizenCache, IJwtService jwt) : Controller
 {
     [HttpPost]
-    [Route("{citizenId}/vote/")]
-    public async Task<BooleanReturn> Vote(Ulid citizenId, Ballots votes)
+    [Route("vote/")]
+    public async Task<BooleanReturn> Vote(Ballots votes)
     {
-        if (CitizenCache.GetCitizenCircuit(citizenId) is not CircuitId circuitId)
+        var circuitId = jwt.GetData(HttpContext)?.CircuitId;
+
+        if (circuitId is null || CitizenCache.GetCircuitsApprovedCitizen(circuitId) is not (Ulid citizenId, _))
         {
             return new() { Success = false, Message = "Could not get circuit." };
         }

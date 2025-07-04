@@ -13,6 +13,7 @@ var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFakeService, FakeService>();
 builder.Services.AddScoped<ICitizenService, CitizenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ICitizenCacheService, CitizenCacheService>();
 builder.Services.AddCors((options) => {
     options.AddPolicy(name: MyAllowSpecificOrigins,

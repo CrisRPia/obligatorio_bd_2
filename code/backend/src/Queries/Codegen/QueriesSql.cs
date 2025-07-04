@@ -152,7 +152,7 @@ public partial class QueriesSql
     }
 
     public const string LoginCitizenSql =
-        "SELECT c.citizen_id, c.credencial_civica, c.uruguayan_id, c.name, c.surname, c.birth, c.password_hash, po . police_officer_id, psp . polling_station_president_id, psv . polling_station_vocal_id, pss . polling_station_secretary_id, pdiehps . polling_district_number, pdiehps . establishment_id  FROM  citizen  c  LEFT  JOIN  police_officer  po  ON  po . police_officer_id  =  c . citizen_id  LEFT  JOIN  polling_station_president  psp  ON  psp . polling_station_president_id  =  c . citizen_id  LEFT  JOIN  polling_station_vocal  psv  ON  psv . polling_station_vocal_id  =  c . citizen_id  LEFT  JOIN  polling_station_secretary  pss  ON  pss . polling_station_secretary_id  =  c . citizen_id  LEFT  JOIN  polling_district_in_election_has_polling_station  pdiehps  ON  pdiehps . polling_station_president_id  =  c . citizen_id  WHERE  c . credencial_civica  =  @credencial_civica  AND  c . uruguayan_id  =  @uruguayan_id; SELECT  LAST_INSERT_ID ( ) ";
+        "SELECT c.citizen_id, c.credencial_civica, c.uruguayan_id, c.name, c.surname, c.birth, c.password_hash, po . police_officer_id, psp . polling_station_president_id, psv . polling_station_vocal_id, pss . polling_station_secretary_id, pdiehps . polling_district_number, pdiehps . establishment_id, e . address, e . name  as  'establishment_name', z . zone_id, z . postal_code, l . locality_id, l . type, l . name  as  'locality_name', d . department_id, d . name  as  'department_name'  FROM  citizen  c  JOIN  police_officer  po  ON  po . police_officer_id  =  c . citizen_id  JOIN  polling_station_president  psp  ON  psp . polling_station_president_id  =  c . citizen_id  JOIN  polling_station_vocal  psv  ON  psv . polling_station_vocal_id  =  c . citizen_id  JOIN  polling_station_secretary  pss  ON  pss . polling_station_secretary_id  =  c . citizen_id  JOIN  polling_district_in_election_has_polling_station  pdiehps  ON  pdiehps . polling_station_president_id  =  c . citizen_id  join  establishment  e  on  e . establishment_id  =  pdiehps . establishment_id  join  zone  z  on  e . zone_id  =  z . zone_id  join  locality  l  on  z . locality_id  =  l . locality_id  join  department  d  on  l . department_id  =  d . department_id  WHERE  c . credencial_civica  =  @credencial_civica  AND  c . uruguayan_id  =  @uruguayan_id; SELECT  LAST_INSERT_ID ( ) ";
 
     public partial class LoginCitizenRow
     {
@@ -163,12 +163,21 @@ public partial class QueriesSql
         public required string Surname { get; init; }
         public required DateTime Birth { get; init; }
         public required string PasswordHash { get; init; }
-        public byte[]? PoliceOfficerId { get; init; }
-        public byte[]? PollingStationPresidentId { get; init; }
-        public byte[]? PollingStationVocalId { get; init; }
-        public byte[]? PollingStationSecretaryId { get; init; }
-        public int? PollingDistrictNumber { get; init; }
-        public byte[]? EstablishmentId { get; init; }
+        public required byte[] PoliceOfficerId { get; init; }
+        public required byte[] PollingStationPresidentId { get; init; }
+        public required byte[] PollingStationVocalId { get; init; }
+        public required byte[] PollingStationSecretaryId { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
+        public required string Address { get; init; }
+        public required string EstablishmentName { get; init; }
+        public required byte[] ZoneId { get; init; }
+        public required string PostalCode { get; init; }
+        public required byte[] LocalityId { get; init; }
+        public required LocalityType Type { get; init; }
+        public required string LocalityName { get; init; }
+        public required byte[] DepartmentId { get; init; }
+        public required string DepartmentName { get; init; }
     };
 
     public partial class LoginCitizenArgs
