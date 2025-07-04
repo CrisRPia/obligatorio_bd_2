@@ -1,14 +1,12 @@
 import { SessionStorage } from "@/services/sessionStorageService";
-import { getElections, postCitizenCitizenIdVote, type Ballot, type Ballots, type Election } from "@codegen/backend.api";
+import { voter } from "@/services/voter";
+import * as backend from "@codegen/backend.api";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-// Simulación de datos
-const citizenId = "12345678";
-
-const opcionesPorTipo: Map<string, Ballot[]> = new Map();
+const opcionesPorTipo: Map<string, backend.Ballot[]> = new Map();
 if (SessionStorage.get("userData")?.citizenId) {
-    const result = await getElections({
+    const result = await backend.getElections({
         AvailableForUser: SessionStorage.get("userData")?.citizenId,
         OnlyOpenOrClosed: "Open",
     })
@@ -18,34 +16,27 @@ if (SessionStorage.get("userData")?.citizenId) {
 }
 
 
-
-
 const EmitirVoto: React.FC = () => {
     const { circuitId } = useParams<{ circuitId: string }>();
-    const [elecciones, setElecciones] = useState<Election[]>([]);
-    const [selecciones, setSelecciones] = useState<Record<string, Ballot | null>>({});
+    const [elecciones, setElecciones] = useState<backend.Election[]>([]);
+    const [selecciones, setSelecciones] = useState<Record<string, backend.Ballot | null>>({});
     const [enviado, setEnviado] = useState(false);
 
     useEffect(() => {
         const fetchElections = async () => {
-            try {
-                const { status, data } = await getElections({ OnlyOpenOrClosed: "Open" }, {});
-                if (status === 200) {
-                    const validas = data.items.filter((e: Election) => opcionesPorTipo.get(e.type));
-                    setElecciones(validas);
-                } else {
-                    alert("Error al cargar elecciones");
-                }
-            } catch (err) {
-                console.error("Error:", err);
-                alert("Error al conectar con el servidor");
+            const result = await voter.getOpenElections();
+
+            if (!result) {
+                return;
             }
+            const validas = result?.data.items.filter(e => opcionesPorTipo.get(e.type));
+            setElecciones(validas);
         };
 
         fetchElections();
     }, []);
 
-    const handleSeleccion = (electionId: string, opcion: Ballot | null) => {
+    const handleSeleccion = (electionId: string, opcion: backend.Ballot | null) => {
         setSelecciones(prev => ({ ...prev, [electionId]: opcion }));
     };
 
@@ -56,25 +47,15 @@ const EmitirVoto: React.FC = () => {
             throw "Whatthedogdoin";
         }
 
-        const votos: Ballot[] = elecciones.map(elec => selecciones[elec.electionId]!);
+        const votos: backend.Ballot[] = elecciones.map(elec => selecciones[elec.electionId]!);
 
-        const payload: Ballots = { items: votos };
+        const result = await voter.vote({ items: votos });
 
-        try {
-            const { status } = await postCitizenCitizenIdVote(
-                citizenId,
-                payload
-            );
-
-            if (status === 200 || status === 201) {
-                setEnviado(true);
-            } else {
-                alert("Error al enviar el voto");
-            }
-        } catch (err) {
-            console.error("Error enviando voto:", err);
-            alert("Error de red");
+        if (!result) {
+            return;
         }
+
+        setEnviado(true);
     };
 
     if (enviado) return <p>✅ Voto enviado correctamente</p>;
