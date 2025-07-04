@@ -8,11 +8,19 @@ using Microsoft.OpenApi.Models;
 using SwaggerThemes;
 
 var builder = WebApplication.CreateBuilder(args);
+var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFakeService, FakeService>();
 builder.Services.AddScoped<ICitizenService, CitizenService>();
 builder.Services.AddSingleton<ICitizenCacheService, CitizenCacheService>();
+builder.Services.AddCors((options) => {
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+          policy  =>
+          {
+              policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+          });
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -80,6 +88,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 var app = builder.Build();
 
+app.UseCors(MyAllowSpecificOrigins);
 app.UseSwagger();
 app.UseSwaggerUI(
     ModernStyle.Dark,

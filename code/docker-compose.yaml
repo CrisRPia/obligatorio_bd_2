@@ -1,4 +1,4 @@
-name: Votes
+name: votes
 services:
     votes_backend:
         image: votes_backend
