@@ -24,7 +24,7 @@ public class AuthController(IJwtService jwt, IAuthService authService) : Control
         var token = jwt.GenerateJwtToken(
             new()
             {
-                Username = "Votante",
+                Username = $"{result.User.Name} {result.User.Surname}",
                 UserId = result.User.CitizenId,
                 Roles = [Role.Voter],
                 TokenId = null,

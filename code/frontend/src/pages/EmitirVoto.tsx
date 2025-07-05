@@ -1,19 +1,18 @@
-import { SessionStorage } from "@/services/sessionStorageService";
 import { voter } from "@/services/voter";
 import * as backend from "@codegen/backend.api";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 const opcionesPorTipo: Map<string, backend.Ballot[]> = new Map();
-if (SessionStorage.get("userData")?.citizenId) {
-    const result = await backend.getElections({
-        AvailableForUser: SessionStorage.get("userData")?.citizenId,
-        OnlyOpenOrClosed: "Open",
-    })
-    for (const item of result.data.items) {
-    opcionesPorTipo.set(item.electionId, item.allowedBallots);
-    }
-}
+// if (SessionStorage.get("userData")?.citizenId) {
+//     const result = await backend.getElections({
+//         AvailableForUser: SessionStorage.get("userData")?.citizenId,
+//         OnlyOpenOrClosed: "Open",
+//     })
+//     for (const item of result.data.items) {
+//     opcionesPorTipo.set(item.electionId, item.allowedBallots);
+//     }
+// }
 
 
 const EmitirVoto: React.FC = () => {

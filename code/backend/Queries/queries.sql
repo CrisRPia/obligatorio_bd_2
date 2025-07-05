@@ -60,7 +60,7 @@ INSERT
 INTO vote_contains_ballot (vote_id, ballot_id)
 VALUES (?, ?);
 
--- name: GetElectionsForCitizen :many
+-- name: GetElections :many
 SELECT e.*
      , b.election_id  AS 'ballotage_id'
      , pl.election_id AS 'pleibiscite_id'
@@ -70,15 +70,14 @@ SELECT e.*
      , l.department_id
 FROM election e
          INNER JOIN citizen_assigned_int_polling_district_election caipde
-                    ON e.election_id = caipde.election_id AND caipde.citizen_id = ?
+                    ON e.election_id = caipde.election_id and caipde.polling_district_number = ? and
+                       caipde.establishment_id = ?
          LEFT JOIN ballotage b ON e.election_id = b.election_id
          LEFT JOIN pleibiscite pl ON e.election_id = pl.election_id
          LEFT JOIN referendum r ON e.election_id = r.election_id
          LEFT JOIN presidential pr ON e.election_id = pr.election_id
          LEFT JOIN municipal m ON e.election_id = m.election_id
-         LEFT JOIN locality l ON l.locality_id = m.locality_id
-WHERE (sqlc.arg(start_date) <= e.date)
-  AND (sqlc.arg(end_date) >= e.date);
+         LEFT JOIN locality l ON l.locality_id = m.locality_id;
 
 -- name: GetPollingStationDistrict :one
 SELECT *

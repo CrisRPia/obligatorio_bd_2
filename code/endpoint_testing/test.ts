@@ -40,15 +40,16 @@ async function main() {
     }));
     assert_ok(voterCredentials);
 
-    let presidentHeaders = new Headers({
+    let presidentHeaders = { headers: new Headers({
         Authorization: `Bearer ${presidentCredentials.data.jwtToken}`,
-    });
+    })} ;
 
-    let voterHeaders = new Headers({
+    deepLog({ voterCredentials });
+    let voterHeaders = { headers: new Headers({
         Authorization: `Bearer ${voterCredentials.data.jwtToken}`,
-    });
+    })};
 
-    let openState = await backend.putTableOpen({ headers: presidentHeaders });
+    let openState = await backend.putTableOpen(presidentHeaders);
 
     assert_ok(openState);
 
@@ -59,34 +60,36 @@ async function main() {
             {
                 authorizeObserved: true,
             },
-            { headers: presidentHeaders },
+            presidentHeaders,
         );
         assert_ok(authorizeResult);
 
         let availableElections = (await backend.getElections({
-            AvailableForUser: president.citizenId,
+            "AvailableForCircuit.CircuitNumber": voterCredentials.data.circuit.circuitId.circuitNumber,
+            "AvailableForCircuit.EstablishmentId": voterCredentials.data.circuit.circuitId.establishmentId,
         }));
 
         assert_ok(availableElections);
 
         for (const election of availableElections.data.items) {
+            console.log("Getting headers");
+            assert_ok(await backend.getAuthJWT(voterHeaders));
+            console.log("Could get headers");
             const voteResult = await backend.postCitizenVote({ items: [
                 {
                     ballotId: pickRandom(election.allowedBallots)!.ballotId,
                     electionId: election.electionId,
                 }
-            ]}, { headers: voterHeaders });
+            ]}, voterHeaders);
 
             assert_boolean_return({ ...voteResult, context: voterCredentials.data.jwtToken });
+            console.log("Voted");
         }
     }
 
-    let closeResult = await backend.putTableClose({ headers: presidentHeaders });
+    let closeResult = await backend.putTableClose(presidentHeaders);
 
     assert_ok(closeResult);
-    deepLog({ closeResult });
-
-    console.log("ElectionId: ", response.data.electionId);
     let electionResult = await backend.postElectionsResult([response.data.electionId])
     assert_ok(closeResult);
     deepLog({ electionResult });

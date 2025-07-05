@@ -46,7 +46,7 @@ const ProtectedRoute: React.FC<{
   // Si se especifican tipos de usuario permitidos y el usuario no coincide, redirige a no autorizado
   if (
     allowedUserTypes.length !== 0 &&
-    !userTypes.some((userType) => !allowedUserTypes.includes(userType!))
+    !userTypes.some((userType) => allowedUserTypes.includes(userType!))
   ) {
     console.log("Redirecting to login.", { allowedUserTypes, userTypes });
     return <Navigate to="/unauthorized" replace />;

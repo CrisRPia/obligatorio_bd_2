@@ -238,10 +238,10 @@ public partial class QueriesSql
         }
     }
 
-    public const string GetElectionsForCitizenSql =
-        "SELECT e.election_id, e.description, e.date, e.state, b . election_id  AS  'ballotage_id', pl . election_id  AS  'pleibiscite_id', r . election_id  AS  'referendum_id', pr . election_id  AS  'presidential_id', m . election_id  AS  'municipal_id', l . department_id  FROM  election  e  INNER  JOIN  citizen_assigned_int_polling_district_election  caipde  ON  e . election_id  =  caipde . election_id  AND  caipde . citizen_id  =  @citizen_id  LEFT  JOIN  ballotage  b  ON  e . election_id  =  b . election_id  LEFT  JOIN  pleibiscite  pl  ON  e . election_id  =  pl . election_id  LEFT  JOIN  referendum  r  ON  e . election_id  =  r . election_id  LEFT  JOIN  presidential  pr  ON  e . election_id  =  pr . election_id  LEFT  JOIN  municipal  m  ON  e . election_id  =  m . election_id  LEFT  JOIN  locality  l  ON  l . locality_id  =  m . locality_id  WHERE ( @start_date <= e . date ) AND ( @end_date >= e . date ); SELECT  LAST_INSERT_ID ( ) ";
+    public const string GetElectionsSql =
+        "SELECT e.election_id, e.description, e.date, e.state, b . election_id  AS  'ballotage_id', pl . election_id  AS  'pleibiscite_id', r . election_id  AS  'referendum_id', pr . election_id  AS  'presidential_id', m . election_id  AS  'municipal_id', l . department_id  FROM  election  e  INNER  JOIN  citizen_assigned_int_polling_district_election  caipde  ON  e . election_id  =  caipde . election_id  and  caipde . polling_district_number  =  @polling_district_number  and  caipde . establishment_id  =  @establishment_id  LEFT  JOIN  ballotage  b  ON  e . election_id  =  b . election_id  LEFT  JOIN  pleibiscite  pl  ON  e . election_id  =  pl . election_id  LEFT  JOIN  referendum  r  ON  e . election_id  =  r . election_id  LEFT  JOIN  presidential  pr  ON  e . election_id  =  pr . election_id  LEFT  JOIN  municipal  m  ON  e . election_id  =  m . election_id  LEFT  JOIN  locality  l  ON  l . locality_id  =  m . locality_id; SELECT  LAST_INSERT_ID ( ) ";
 
-    public partial class GetElectionsForCitizenRow
+    public partial class GetElectionsRow
     {
         public required byte[] ElectionId { get; init; }
         public required string Description { get; init; }
@@ -255,27 +255,20 @@ public partial class QueriesSql
         public byte[]? DepartmentId { get; init; }
     };
 
-    public partial class GetElectionsForCitizenArgs
+    public partial class GetElectionsArgs
     {
-        public required byte[] CitizenId { get; init; }
-        public required DateTime StartDate { get; init; }
-        public required DateTime EndDate { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
     };
 
-    public async Task<List<GetElectionsForCitizenRow>> GetElectionsForCitizen(
-        GetElectionsForCitizenArgs args
-    )
+    public async Task<List<GetElectionsRow>> GetElections(GetElectionsArgs args)
     {
         using (var connection = new MySqlConnection(ConnectionString))
         {
             var queryParams = new Dictionary<string, object?>();
-            queryParams.Add("citizen_id", args.CitizenId);
-            queryParams.Add("start_date", args.StartDate);
-            queryParams.Add("end_date", args.EndDate);
-            var result = await connection.QueryAsync<GetElectionsForCitizenRow>(
-                GetElectionsForCitizenSql,
-                queryParams
-            );
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            queryParams.Add("establishment_id", args.EstablishmentId);
+            var result = await connection.QueryAsync<GetElectionsRow>(GetElectionsSql, queryParams);
             return result.AsList();
         }
     }

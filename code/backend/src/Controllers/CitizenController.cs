@@ -13,6 +13,7 @@ namespace backend.src.Controllers;
 public class CitizenController(ICitizenCacheService CitizenCache, IJwtService jwt) : Controller
 {
     [HttpPost]
+    [SafeAuthorize([Role.Voter])]
     [Route("vote/")]
     public async Task<BooleanReturn> Vote(Ballots votes)
     {
