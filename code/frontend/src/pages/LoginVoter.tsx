@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import * as backend from "@codegen/backend.api";
 import { voterAuth } from '@/services/auth';
+import { useNavigate } from 'react-router-dom';
 
 type LoginFormData = backend.LoginCredentials;
 
 const LoginVoter: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<Partial<LoginFormData>>({
     credencialCivica: undefined,
     password: undefined,
@@ -43,6 +45,7 @@ const LoginVoter: React.FC = () => {
     }
 
     setSuccess('Login exitoso. Redirigiendo...');
+    navigate("/votar");
   };
 
   return (

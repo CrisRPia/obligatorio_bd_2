@@ -45,19 +45,17 @@ public class AuthService : IAuthService
                 CredencialCivica = citizen.CredencialCivica,
                 UruguayanId = citizen.UruguayanId,
             }
-        );
+        ) ?? throw new InvalidOperationException("Citizen not found.");
 
-        if (select is null || !Argon2.Verify(select.PasswordHash, citizen.Password))
-            throw new NotImplementedException();
+        if (!Argon2.Verify(select.PasswordHash, citizen.Password)) {
+            throw new InvalidOperationException("Wrong password.");
+        }
 
         var rolesMap = new Dictionary<Role, bool>
         {
             [Role.Admin] = true, // TODO
             [Role.Voter] = select.CitizenId is not null, // TODO
-            [Role.Police] = select.PoliceOfficerId is not null,
             [Role.BoardPresident] = select.PollingStationPresidentId is not null,
-            [Role.BoardSecretary] = select.PollingStationSecretaryId is not null,
-            [Role.BoardVocal] = select.PollingStationVocalId is not null,
         };
 
         var roles = rolesMap.Where(kv => kv.Value).Select(kv => kv.Key).ToImmutableList();

@@ -16,11 +16,16 @@ public class CitizenController(ICitizenCacheService CitizenCache, IJwtService jw
     [Route("vote/")]
     public async Task<BooleanReturn> Vote(Ballots votes)
     {
-        var circuitId = jwt.GetData(HttpContext)?.CircuitId;
+        var tokenData =jwt.GetData(HttpContext);
+        var circuitId = tokenData?.CircuitId;
 
-        if (circuitId is null || CitizenCache.GetCircuitsApprovedCitizen(circuitId) is not (Ulid citizenId, _))
+        if (circuitId is null) {
+            return new() { Success = false, Message = "Could not get circuit.", Context = new { tokenData }};
+        }
+
+        if (CitizenCache.GetCircuitsApprovedCitizen(circuitId) is not (Ulid citizenId, _))
         {
-            return new() { Success = false, Message = "Could not get circuit." };
+            return new() { Success = false, Message = "No citizen approved to vote." };
         }
 
         using var connection = DB.NewOpenConnection();

@@ -27,10 +27,7 @@ WHERE citizen_id = ?;
 
 -- name: LoginCitizen :one
 SELECT c.*
-     , po.police_officer_id
      , psp.polling_station_president_id
-     , psv.polling_station_vocal_id
-     , pss.polling_station_secretary_id
      , pdiehps.polling_district_number
      , pdiehps.establishment_id
      , e.address
@@ -43,10 +40,7 @@ SELECT c.*
      , d.department_id
      , d.name as 'department_name'
 FROM citizen c
-         JOIN police_officer po ON po.police_officer_id = c.citizen_id
          JOIN polling_station_president psp ON psp.polling_station_president_id = c.citizen_id
-         JOIN polling_station_vocal psv ON psv.polling_station_vocal_id = c.citizen_id
-         JOIN polling_station_secretary pss ON pss.polling_station_secretary_id = c.citizen_id
          JOIN polling_district_in_election_has_polling_station pdiehps
               ON pdiehps.polling_station_president_id = c.citizen_id
          join establishment e on e.establishment_id = pdiehps.establishment_id
@@ -73,7 +67,7 @@ SELECT e.*
      , r.election_id  AS 'referendum_id'
      , pr.election_id AS 'presidential_id'
      , m.election_id  AS 'municipal_id'
-     , department_id
+     , l.department_id
 FROM election e
          INNER JOIN citizen_assigned_int_polling_district_election caipde
                     ON e.election_id = caipde.election_id AND caipde.citizen_id = ?
