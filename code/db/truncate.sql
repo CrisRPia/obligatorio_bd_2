@@ -1,0 +1,37 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE `FV_Grupo2`.`ballot`;
+TRUNCATE TABLE `FV_Grupo2`.`ballotage`;
+TRUNCATE TABLE `FV_Grupo2`.`boolean_ballot`;
+TRUNCATE TABLE `FV_Grupo2`.`citizen`;
+TRUNCATE TABLE `FV_Grupo2`.`citizen_assigned_int_polling_district_election`;
+TRUNCATE TABLE `FV_Grupo2`.`citizen_votes_in_polling_district_election`;
+TRUNCATE TABLE `FV_Grupo2`.`department`;
+TRUNCATE TABLE `FV_Grupo2`.`election`;
+TRUNCATE TABLE `FV_Grupo2`.`election_allows_ballots`;
+TRUNCATE TABLE `FV_Grupo2`.`election_has_polling_district`;
+TRUNCATE TABLE `FV_Grupo2`.`establishment`;
+TRUNCATE TABLE `FV_Grupo2`.`list_ballot`;
+TRUNCATE TABLE `FV_Grupo2`.`list_ballot_belongs_to_department`;
+TRUNCATE TABLE `FV_Grupo2`.`list_ballot_has_candidate`;
+TRUNCATE TABLE `FV_Grupo2`.`locality`;
+TRUNCATE TABLE `FV_Grupo2`.`municipal`;
+TRUNCATE TABLE `FV_Grupo2`.`party`;
+TRUNCATE TABLE `FV_Grupo2`.`party_has_citizen`;
+TRUNCATE TABLE `FV_Grupo2`.`pleibiscite`;
+TRUNCATE TABLE `FV_Grupo2`.`police_officer`;
+TRUNCATE TABLE `FV_Grupo2`.`police_officer_assigned_establishment`;
+TRUNCATE TABLE `FV_Grupo2`.`police_officer_assigned_police_station`;
+TRUNCATE TABLE `FV_Grupo2`.`police_station`;
+TRUNCATE TABLE `FV_Grupo2`.`polling_district`;
+TRUNCATE TABLE `FV_Grupo2`.`polling_district_in_election_has_polling_station`;
+TRUNCATE TABLE `FV_Grupo2`.`polling_station_president`;
+TRUNCATE TABLE `FV_Grupo2`.`polling_station_secretary`;
+TRUNCATE TABLE `FV_Grupo2`.`polling_station_vocal`;
+TRUNCATE TABLE `FV_Grupo2`.`presidential`;
+TRUNCATE TABLE `FV_Grupo2`.`referendum`;
+TRUNCATE TABLE `FV_Grupo2`.`vote`;
+TRUNCATE TABLE `FV_Grupo2`.`vote_contains_ballot`;
+TRUNCATE TABLE `FV_Grupo2`.`zone`;
+
+SET FOREIGN_KEY_CHECKS = 1;
