@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using backend.src.Models;
 using backend.src.Queries;
 using Microsoft.AspNetCore.Mvc;
@@ -14,27 +15,11 @@ public class ElectionController : Controller
     public async Task<ListModel<Election>> GetElections([FromQuery] Filters filters)
     {
         // Get elections
-        IEnumerable<Queries.Codegen.QueriesSql.GetElectionsForCitizenRow> result =
-            await DB.Queries.GetElectionsForCitizen(
-                new()
-                {
-                    CitizenId = filters.AvailableForUser.ToByteArray(),
-                    EndDate = filters.MaximumDateTime ?? DateTime.Today.Add(TimeSpan.FromDays(365)),
-                    StartDate =
-                        filters.MinimumDateTime ?? DateTime.Today.Subtract(TimeSpan.FromDays(365)),
-                }
-            );
-
-        // Filter by optional filters.
-        if (filters.SearchTerm is not null)
-        {
-            result = result.Where(e => e.Description.Contains(filters.SearchTerm));
-        }
-
-        if (filters.HasResults is not null)
-        {
-            result = result.Where(e => e.State == Queries.Codegen.ElectionState.Closed);
-        }
+        IEnumerable<Queries.Codegen.QueriesSql.GetElectionsRow> result =
+            await DB.Queries.GetElections(new() {
+                EstablishmentId = filters.AvailableForCircuit.EstablishmentId.ToByteArray(),
+                PollingDistrictNumber = filters.AvailableForCircuit.CircuitNumber,
+            });
 
         IEnumerable<Election> parsedResults = result.Select(e =>
         {
@@ -139,14 +124,12 @@ public class ElectionController : Controller
 
 public record Filters
 {
-    public DateTime? MinimumDateTime { get; init; }
-    public DateTime? MaximumDateTime { get; init; }
     public Ulid? DepartmentId { get; init; }
     public ElectionState? OnlyOpenOrClosed { get; init; }
 
+    [Required]
+    public required CircuitId AvailableForCircuit { get; init; }
+
     [Description("Do not specify (or empty) to set to all.")]
     public IReadOnlyList<ElectionType> RestrictToTypes { get; init; } = [];
-    public string? SearchTerm { get; init; }
-    public bool? HasResults { get; init; }
-    public Ulid AvailableForUser { get; init; }
 }

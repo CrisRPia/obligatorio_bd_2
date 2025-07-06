@@ -37,10 +37,25 @@ export interface BaseCitizen {
   uruguayanId: number;
 }
 
+/**
+ * @nullable
+ */
+export type BooleanReturnContext = unknown | null;
+
 export interface BooleanReturn {
   success: boolean;
   /** @nullable */
   message?: string | null;
+  /** @nullable */
+  context?: BooleanReturnContext;
+}
+
+export interface BooleanReturnAuthResponse {
+  /** @minLength 1 */
+  jwtToken: string;
+  roles: Role[];
+  user: BooleanReturn;
+  circuit: Circuit;
 }
 
 export interface BooleanVote {
@@ -174,8 +189,8 @@ export interface FullCitizenAuthResponse {
   /** @minLength 1 */
   jwtToken: string;
   roles: Role[];
-  citizenId: string;
   user: FullCitizen;
+  circuit: Circuit;
 }
 
 export interface FullCitizenOption {
@@ -235,18 +250,6 @@ export interface Table {
   vocal: FullCitizen;
 }
 
-export interface ValueTuple {
-  [key: string]: unknown;
-}
-
-export interface ValueTupleAuthResponse {
-  /** @minLength 1 */
-  jwtToken: string;
-  roles: Role[];
-  citizenId: string;
-  user: ValueTuple;
-}
-
 export interface Zone {
   zoneId: string;
   locality: Locality;
@@ -265,17 +268,14 @@ export type GetDebugFakeCitizensParams = {
 };
 
 export type GetElectionsParams = {
-  MinimumDateTime?: string;
-  MaximumDateTime?: string;
   DepartmentId?: string;
   OnlyOpenOrClosed?: ElectionState;
+  "AvailableForCircuit.CircuitNumber": number;
+  "AvailableForCircuit.EstablishmentId": string;
   /**
    * Do not specify (or empty) to set to all.
    */
   RestrictToTypes?: ElectionType[];
-  SearchTerm?: string;
-  HasResults?: boolean;
-  AvailableForUser?: string;
 };
 
 export type PostTableCitizenIdAuthorizeParams = {
@@ -315,26 +315,26 @@ export const getAuthJWT = async (
   } as getAuthJWTResponse;
 };
 
-export type postAuthResponse200 = {
-  data: FullCitizenAuthResponse;
+export type postAuthVoterResponse200 = {
+  data: BooleanReturnAuthResponse;
   status: 200;
 };
 
-export type postAuthResponseComposite = postAuthResponse200;
+export type postAuthVoterResponseComposite = postAuthVoterResponse200;
 
-export type postAuthResponse = postAuthResponseComposite & {
+export type postAuthVoterResponse = postAuthVoterResponseComposite & {
   headers: Headers;
 };
 
-export const getPostAuthUrl = () => {
-  return `http://localhost:8080/auth`;
+export const getPostAuthVoterUrl = () => {
+  return `http://localhost:8080/auth/voter`;
 };
 
-export const postAuth = async (
+export const postAuthVoter = async (
   loginCredentials: LoginCredentials,
   options?: RequestInit,
-): Promise<postAuthResponse> => {
-  const res = await fetch(getPostAuthUrl(), {
+): Promise<postAuthVoterResponse> => {
+  const res = await fetch(getPostAuthVoterUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -342,34 +342,74 @@ export const postAuth = async (
   });
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: postAuthResponse["data"] = body ? JSON.parse(body) : {};
+  const data: postAuthVoterResponse["data"] = body ? JSON.parse(body) : {};
 
-  return { data, status: res.status, headers: res.headers } as postAuthResponse;
+  return {
+    data,
+    status: res.status,
+    headers: res.headers,
+  } as postAuthVoterResponse;
 };
 
-export type postCitizenCitizenIdVoteResponse200 = {
+export type postAuthTableResponse200 = {
+  data: FullCitizenAuthResponse;
+  status: 200;
+};
+
+export type postAuthTableResponseComposite = postAuthTableResponse200;
+
+export type postAuthTableResponse = postAuthTableResponseComposite & {
+  headers: Headers;
+};
+
+export const getPostAuthTableUrl = () => {
+  return `http://localhost:8080/auth/table`;
+};
+
+export const postAuthTable = async (
+  loginCredentials: LoginCredentials,
+  options?: RequestInit,
+): Promise<postAuthTableResponse> => {
+  const res = await fetch(getPostAuthTableUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(loginCredentials),
+  });
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+  const data: postAuthTableResponse["data"] = body ? JSON.parse(body) : {};
+
+  return {
+    data,
+    status: res.status,
+    headers: res.headers,
+  } as postAuthTableResponse;
+};
+
+/**
+ * @summary  (Secured - Roles: Voter)
+ */
+export type postCitizenVoteResponse200 = {
   data: BooleanReturn;
   status: 200;
 };
 
-export type postCitizenCitizenIdVoteResponseComposite =
-  postCitizenCitizenIdVoteResponse200;
+export type postCitizenVoteResponseComposite = postCitizenVoteResponse200;
 
-export type postCitizenCitizenIdVoteResponse =
-  postCitizenCitizenIdVoteResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostCitizenCitizenIdVoteUrl = (citizenId: string) => {
-  return `http://localhost:8080/citizen/${citizenId}/vote`;
+export type postCitizenVoteResponse = postCitizenVoteResponseComposite & {
+  headers: Headers;
 };
 
-export const postCitizenCitizenIdVote = async (
-  citizenId: string,
+export const getPostCitizenVoteUrl = () => {
+  return `http://localhost:8080/citizen/vote`;
+};
+
+export const postCitizenVote = async (
   ballots: Ballots,
   options?: RequestInit,
-): Promise<postCitizenCitizenIdVoteResponse> => {
-  const res = await fetch(getPostCitizenCitizenIdVoteUrl(citizenId), {
+): Promise<postCitizenVoteResponse> => {
+  const res = await fetch(getPostCitizenVoteUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -377,15 +417,13 @@ export const postCitizenCitizenIdVote = async (
   });
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: postCitizenCitizenIdVoteResponse["data"] = body
-    ? JSON.parse(body)
-    : {};
+  const data: postCitizenVoteResponse["data"] = body ? JSON.parse(body) : {};
 
   return {
     data,
     status: res.status,
     headers: res.headers,
-  } as postCitizenCitizenIdVoteResponse;
+  } as postCitizenVoteResponse;
 };
 
 /**
@@ -559,42 +597,6 @@ export const getDebugFakeCitizens = async (
   } as getDebugFakeCitizensResponse;
 };
 
-export type postDebugJWTResponse200 = {
-  data: ValueTupleAuthResponse;
-  status: 200;
-};
-
-export type postDebugJWTResponseComposite = postDebugJWTResponse200;
-
-export type postDebugJWTResponse = postDebugJWTResponseComposite & {
-  headers: Headers;
-};
-
-export const getPostDebugJWTUrl = () => {
-  return `http://localhost:8080/debug/JWT`;
-};
-
-export const postDebugJWT = async (
-  role: Role[],
-  options?: RequestInit,
-): Promise<postDebugJWTResponse> => {
-  const res = await fetch(getPostDebugJWTUrl(), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(role),
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  const data: postDebugJWTResponse["data"] = body ? JSON.parse(body) : {};
-
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as postDebugJWTResponse;
-};
-
 export type postDebugPlaygroundResponse200 = {
   data: void;
   status: 200;
@@ -746,7 +748,7 @@ export type getElectionsResponse = getElectionsResponseComposite & {
   headers: Headers;
 };
 
-export const getGetElectionsUrl = (params?: GetElectionsParams) => {
+export const getGetElectionsUrl = (params: GetElectionsParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -763,7 +765,7 @@ export const getGetElectionsUrl = (params?: GetElectionsParams) => {
 };
 
 export const getElections = async (
-  params?: GetElectionsParams,
+  params: GetElectionsParams,
   options?: RequestInit,
 ): Promise<getElectionsResponse> => {
   const res = await fetch(getGetElectionsUrl(params), {

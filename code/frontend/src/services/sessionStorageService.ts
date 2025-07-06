@@ -1,11 +1,13 @@
 import * as backend from "@codegen/backend.api";
 
 type sessionStorageMap = {
-    "authToken": string,
-    "userType": string,
+    "presidentAuthData": backend.postAuthTableResponse200["data"],
+    "voterAuthData": backend.postAuthVoterResponse200["data"],
     "userData": backend.FullCitizen,
-    "credencialCivica": string
+    "departmentCache": backend.Department[],
 };
+
+export type SessionStorageKey = keyof sessionStorageMap;
 
 function removeItem(key: keyof sessionStorageMap) {
     sessionStorage.removeItem(key);
@@ -27,4 +29,6 @@ export const SessionStorage = {
     get,
     set,
     removeItem,
+    clear: sessionStorage.clear,
+    length: sessionStorage.length,
 } as const;

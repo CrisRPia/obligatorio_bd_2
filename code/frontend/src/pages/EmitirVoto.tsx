@@ -1,101 +1,73 @@
-import { SessionStorage } from "@/services/sessionStorageService";
-import { getElections, postCitizenCitizenIdVote, type Ballot, type Ballots, type Election } from "@codegen/backend.api";
+import { toast } from "@/services/toast";
+import { voter } from "@/services/voter";
+import type { Ballot, Department, Election } from "@codegen/backend.api";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-
-// Simulación de datos
-const citizenId = "12345678";
-
-const opcionesPorTipo: Map<string, Ballot[]> = new Map();
-if (SessionStorage.get("userData")?.citizenId) {
-    const result = await getElections({
-        AvailableForUser: SessionStorage.get("userData")?.citizenId,
-        OnlyOpenOrClosed: "Open",
-    })
-    for (const item of result.data.items) {
-    opcionesPorTipo.set(item.electionId, item.allowedBallots);
-    }
-}
-
-
 
 
 const EmitirVoto: React.FC = () => {
-    const { circuitId } = useParams<{ circuitId: string }>();
+    const [departments, setDepartments] = useState<Department[]>([]);
     const [elecciones, setElecciones] = useState<Election[]>([]);
-    const [selecciones, setSelecciones] = useState<Record<string, Ballot | null>>({});
-    const [enviado, setEnviado] = useState(false);
+    const [selecciones, setSelecciones] = useState<Map<string, Ballot | null>>(new Map());
 
     useEffect(() => {
-        const fetchElections = async () => {
-            try {
-                const { status, data } = await getElections({ OnlyOpenOrClosed: "Open" }, {});
-                if (status === 200) {
-                    const validas = data.items.filter((e: Election) => opcionesPorTipo.get(e.type));
-                    setElecciones(validas);
-                } else {
-                    alert("Error al cargar elecciones");
-                }
-            } catch (err) {
-                console.error("Error:", err);
-                alert("Error al conectar con el servidor");
+        const fetchData = async () => {
+            const electionsResult = await voter.getOpenElections();
+            const departmentsResult = await voter.getDepartments();
+
+            if (!electionsResult || !departmentsResult) {
+                toast("Hubo un problema obteniendo los datos.");
+                return;
             }
+
+            setDepartments(departmentsResult);
+            setElecciones(electionsResult.data.items);
         };
 
-        fetchElections();
+        fetchData();
     }, []);
 
-    const handleSeleccion = (electionId: string, opcion: Ballot | null) => {
-        setSelecciones(prev => ({ ...prev, [electionId]: opcion }));
+    const handleSeleccion = (electionId: string, ballot: Ballot | null) => {
+        setSelecciones(prevMap => {
+            const newMap = new Map(prevMap);
+            newMap.set(electionId, ballot);
+            return newMap;
+        });
     };
 
     const handleEnviar = async () => {
-        if (!circuitId) return alert("Circuito no encontrado");
-
-        if (elecciones.map(elec => selecciones[elec.electionId] !== null)) {
-            throw "Whatthedogdoin";
+        if (elecciones.some(elec => selecciones.get(elec.electionId) === null)) {
+            toast("Vota en todas las elecciones antes de confirmar");
+            return;
         }
 
-        const votos: Ballot[] = elecciones.map(elec => selecciones[elec.electionId]!);
+        const votos: Ballot[] = elecciones.map(elec => selecciones.get(elec.electionId)!);
 
-        const payload: Ballots = { items: votos };
+        const result = await voter.vote({ items: votos });
 
-        try {
-            const { status } = await postCitizenCitizenIdVote(
-                citizenId,
-                payload
-            );
-
-            if (status === 200 || status === 201) {
-                setEnviado(true);
-            } else {
-                alert("Error al enviar el voto");
-            }
-        } catch (err) {
-            console.error("Error enviando voto:", err);
-            alert("Error de red");
+        if (!result) {
+            return;
         }
+
+        toast("El voto ha sido enviado.");
     };
-
-    if (enviado) return <p>✅ Voto enviado correctamente</p>;
 
     return (
         <div>
             <h1>🗳️ Emitir Voto</h1>
             {elecciones.map(elec => (
                 <div key={elec.electionId} style={{ marginBottom: "2rem" }}>
-                    <h2>{elec.type} - {elec.electionId}</h2>
+                    <h2>{[elec.type, departments.find(d => d.departmentId === elec.departmentId)?.name].filter(Boolean).join(" - ")}</h2>
                     <ul>
-                        {(opcionesPorTipo.get(elec.type) || []).map(ballot => (
+                        {elec.allowedBallots.map(ballot => (
                             <li key={ballot.ballotId}>
                                 <label>
                                     <input
                                         type="radio"
                                         name={elec.electionId}
-                                        checked={selecciones[elec.electionId]?.electionId === ballot.electionId}
+                                        checked={selecciones.get(elec.electionId)?.ballotId === ballot.ballotId}
                                         onChange={() => handleSeleccion(elec.electionId, ballot)}
                                     />
-                                    {"NOMBRE DE LA PAPELETA"}
+                                    {"Lista " + ballot.listNumber}
                                 </label>
                             </li>
                         ))}

@@ -48,7 +48,7 @@ public class DepartmentController : Controller
     {
         if ((await GetAllDepartments()).Any())
         {
-            throw new InvalidOperationException();
+            return await GetAllDepartments();
         }
 
         var departments = this.departments.Select(name => new Department

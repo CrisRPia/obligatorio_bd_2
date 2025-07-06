@@ -27,28 +27,28 @@ WHERE citizen_id = ?;
 
 -- name: LoginCitizen :one
 SELECT c.*
-     , po.police_officer_id
      , psp.polling_station_president_id
-     , psv.polling_station_vocal_id
-     , pss.polling_station_secretary_id
      , pdiehps.polling_district_number
      , pdiehps.establishment_id
+     , e.address
+     , e.name as 'establishment_name'
+     , z.zone_id
+     , z.postal_code
+     , l.locality_id
+     , l.type
+     , l.name as 'locality_name'
+     , d.department_id
+     , d.name as 'department_name'
 FROM citizen c
-         LEFT JOIN police_officer po ON po.police_officer_id = c.citizen_id
-         LEFT JOIN polling_station_president psp ON psp.polling_station_president_id = c.citizen_id
-         LEFT JOIN polling_station_vocal psv ON psv.polling_station_vocal_id = c.citizen_id
-         LEFT JOIN polling_station_secretary pss ON pss.polling_station_secretary_id = c.citizen_id
-         LEFT JOIN polling_district_in_election_has_polling_station pdiehps
-                   ON pdiehps.polling_station_president_id = c.citizen_id
+         JOIN polling_station_president psp ON psp.polling_station_president_id = c.citizen_id
+         JOIN polling_district_in_election_has_polling_station pdiehps
+              ON pdiehps.polling_station_president_id = c.citizen_id
+         join establishment e on e.establishment_id = pdiehps.establishment_id
+         join zone z on e.zone_id = z.zone_id
+         join locality l on z.locality_id = l.locality_id
+         join department d on l.department_id = d.department_id
 WHERE c.credencial_civica = ?
   AND c.uruguayan_id = ?;
-
-SELECT *
-FROM citizen c
-WHERE c.credencial_civica = 'NEU10000'
-  AND c.uruguayan_id = 83500295
-  AND c.password_hash =
-      '$argon2id$v=19$m=65536,t=3,p=1$ER7MtGNwv3p9b8aNV2mw2A$iQmB1nOEZOTszZ55+7OToKFiOz2nNbofL1iEMEi1/pw';
 
 -- name: InsertVote :exec
 INSERT
@@ -60,25 +60,25 @@ INSERT
 INTO vote_contains_ballot (vote_id, ballot_id)
 VALUES (?, ?);
 
--- name: GetElectionsForCitizen :many
+-- name: GetElections :many
 SELECT e.*
      , b.election_id  AS 'ballotage_id'
      , pl.election_id AS 'pleibiscite_id'
      , r.election_id  AS 'referendum_id'
      , pr.election_id AS 'presidential_id'
      , m.election_id  AS 'municipal_id'
-     , department_id
+     , l.department_id
 FROM election e
          INNER JOIN citizen_assigned_int_polling_district_election caipde
-                    ON e.election_id = caipde.election_id AND caipde.citizen_id = ?
+                    ON e.election_id = caipde.election_id and caipde.polling_district_number = ? and
+                       caipde.establishment_id = ?
          LEFT JOIN ballotage b ON e.election_id = b.election_id
          LEFT JOIN pleibiscite pl ON e.election_id = pl.election_id
          LEFT JOIN referendum r ON e.election_id = r.election_id
          LEFT JOIN presidential pr ON e.election_id = pr.election_id
          LEFT JOIN municipal m ON e.election_id = m.election_id
          LEFT JOIN locality l ON l.locality_id = m.locality_id
-WHERE (sqlc.arg(start_date) <= e.date)
-  AND (sqlc.arg(end_date) >= e.date);
+group by e.election_id;
 
 -- name: GetPollingStationDistrict :one
 SELECT *

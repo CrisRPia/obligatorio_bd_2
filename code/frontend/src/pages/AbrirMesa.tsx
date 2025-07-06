@@ -1,20 +1,12 @@
+import { table } from '@/services/table';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AbrirMesa: React.FC = () => {
     const navigate = useNavigate();
-
     const handleAbrirMesa = async () => {
-        try {
-            // Aca va el endpoint para abrir la mesa
-            // await abrirMesa();
-
-
-            navigate('/mesa/panel');
-        } catch (error) {
-            console.error('Error al abrir la mesa:', error);
-            alert('Hubo un error al abrir la mesa. Intente nuevamente.');
-        }
+        await table.open();
+        await navigate('/mesa/panel');
     };
 
     return (

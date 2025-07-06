@@ -1,29 +1,42 @@
-import './App.css'
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import "./App.css";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
-import Login from './pages/Login.tsx';
-import InicioVotante from './pages/InicioVotante.tsx';
-import EmitirVoto from './pages/EmitirVoto.tsx';
-import AbrirMesa from './pages/AbrirMesa.tsx';
-import PanelMesa from './pages/PanelMesa.tsx';
-import Reportes from './pages/Reportes.tsx';
-import Unauthorized from './pages/Unauthorized.tsx';
-import { SessionStorage } from './services/sessionStorageService.ts';
+import Login from "./pages/Login.tsx";
+import LoginVoter from "./pages/LoginVoter.tsx";
+import EmitirVoto from "./pages/EmitirVoto.tsx";
+import AbrirMesa from "./pages/AbrirMesa.tsx";
+import PanelMesa from "./pages/PanelMesa.tsx";
+import Reportes from "./pages/Reportes.tsx";
+import Unauthorized from "./pages/Unauthorized.tsx";
+import type { Role } from "@codegen/backend.api.ts";
+import { boardPresidentAuth, voterAuth } from "./services/auth.ts";
 
 // Hook para verificar si el usuario está autenticado y obtener su tipo de usuario
 const useAuth = () => {
-  const token = SessionStorage.get('authToken');
-  const userType = SessionStorage.get('userType'); // 'voter', 'polling_station', 'admin'
-  return { isAuthenticated: !!token, userType };
+  const datas = [boardPresidentAuth, voterAuth].map((auth) =>
+    auth.getSessionData(),
+  );
+  return {
+    isAuthenticated: datas.some((data) => !!data?.jwtToken),
+    userTypes: Array.from(new Set(datas.flatMap((data) => data?.roles))).filter(
+      (role) => !!role,
+    ),
+  };
 };
 
 // Componente para rutas protegidas
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
-  allowedUserTypes?: string[];
+  allowedUserTypes?: Role[];
 }> = ({ children, allowedUserTypes }) => {
-  const { isAuthenticated, userType } = useAuth();
+  allowedUserTypes ??= [];
+  const { isAuthenticated, userTypes } = useAuth();
 
   // Si no está autenticado, redirige al login
   if (!isAuthenticated) {
@@ -31,7 +44,11 @@ const ProtectedRoute: React.FC<{
   }
 
   // Si se especifican tipos de usuario permitidos y el usuario no coincide, redirige a no autorizado
-  if (allowedUserTypes && userType && !allowedUserTypes.includes(userType)) {
+  if (
+    allowedUserTypes.length !== 0 &&
+    !userTypes.some((userType) => allowedUserTypes.includes(userType!))
+  ) {
+    console.log("Redirecting to login.", { allowedUserTypes, userTypes });
     return <Navigate to="/unauthorized" replace />;
   }
 
@@ -44,80 +61,54 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-
-
         {/* --- Rutas para Ciudadanos Votantes --- */}
-
-
         {/* Inicio Votante */}
-        <Route
-          path="/votar/:circuitId/ingresar"
-          element={
-            <ProtectedRoute allowedUserTypes={['voter']}>
-              <InicioVotante />
-            </ProtectedRoute>
-          }
-        />
-
-
+        <Route path="/votar/auth" element={<LoginVoter />} />
 
         {/* Emitir Voto */}
         <Route
-          path="/votar/:circuitId"
+          path="/votar"
           element={
-            <ProtectedRoute allowedUserTypes={['voter']}>
+            <ProtectedRoute allowedUserTypes={["Voter"]}>
               <EmitirVoto />
             </ProtectedRoute>
           }
         />
 
-
-
-
-
-
         {/* --- Rutas para Presidentes de Mesa --- */}
-
-
-
         {/* Ruta de Login */}
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/mesa/abrir" replace /> : <Login />} // Redirige al flujo de presidente si ya está autenticado
+          element={
+            isAuthenticated ? <Navigate to="/mesa/abrir" replace /> : <Login />
+          } // Redirige al flujo de presidente si ya está autenticado
         />
-
-
 
         {/* Abrir Mesa */}
         <Route
           path="/mesa/abrir"
           element={
-            <ProtectedRoute allowedUserTypes={['polling_station']}>
+            <ProtectedRoute allowedUserTypes={["BoardPresident"]}>
               <AbrirMesa />
             </ProtectedRoute>
           }
         />
 
-
-
         {/* Panel de Mesa */}
         <Route
           path="/mesa/panel"
           element={
-            <ProtectedRoute allowedUserTypes={['polling_station']}>
+            <ProtectedRoute allowedUserTypes={["BoardPresident"]}>
               <PanelMesa />
             </ProtectedRoute>
           }
         />
 
-
-
-
         {/* Reportes */}
         <Route
           path="/mesa/reportes"
           element={
-            <ProtectedRoute allowedUserTypes={['polling_station']}>
+            <ProtectedRoute allowedUserTypes={["BoardPresident"]}>
               <Reportes />
             </ProtectedRoute>
           }
@@ -133,7 +124,11 @@ const App: React.FC = () => {
         <Route
           path="/"
           element={
-            isAuthenticated ? <Navigate to="/votar" replace /> : <Navigate to="/login" replace />
+            isAuthenticated ? (
+              <Navigate to="/votar" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
         />
 

@@ -9,6 +9,7 @@ orval --config ./frontend_codegen/orval.config.ts
 
 # Move compiled code to where it's needed
 cp ./frontend_codegen/temp/backend.api.ts ../endpoint_testing/
+cp ./frontend_codegen/temp/backend.api.ts ../frontend/codegen/backend.api.ts
 
 # Remove leftovers
 rm ./frontend_codegen/temp/*.ts

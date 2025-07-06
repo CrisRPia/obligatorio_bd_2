@@ -10,15 +10,23 @@ namespace backend.src.Controllers;
 
 [ApiController]
 [Route("citizen/")]
-public class CitizenController(ICitizenCacheService CitizenCache) : Controller
+public class CitizenController(ICitizenCacheService CitizenCache, IJwtService jwt) : Controller
 {
     [HttpPost]
-    [Route("{citizenId}/vote/")]
-    public async Task<BooleanReturn> Vote(Ulid citizenId, Ballots votes)
+    [SafeAuthorize([Role.Voter])]
+    [Route("vote/")]
+    public async Task<BooleanReturn> Vote(Ballots votes)
     {
-        if (CitizenCache.GetCitizenCircuit(citizenId) is not CircuitId circuitId)
+        var tokenData =jwt.GetData(HttpContext);
+        var circuitId = tokenData?.CircuitId;
+
+        if (circuitId is null) {
+            return new() { Success = false, Message = "Could not get circuit.", Context = new { tokenData }};
+        }
+
+        if (CitizenCache.GetCircuitsApprovedCitizen(circuitId) is not (Ulid citizenId, _))
         {
-            return new() { Success = false, Message = "Could not get circuit." };
+            return new() { Success = false, Message = "No citizen approved to vote." };
         }
 
         using var connection = DB.NewOpenConnection();
