@@ -77,7 +77,8 @@ FROM election e
          LEFT JOIN referendum r ON e.election_id = r.election_id
          LEFT JOIN presidential pr ON e.election_id = pr.election_id
          LEFT JOIN municipal m ON e.election_id = m.election_id
-         LEFT JOIN locality l ON l.locality_id = m.locality_id;
+         LEFT JOIN locality l ON l.locality_id = m.locality_id
+group by e.election_id;
 
 -- name: GetPollingStationDistrict :one
 SELECT *

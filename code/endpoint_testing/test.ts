@@ -1,16 +1,18 @@
 import * as backend from "./backend.api.ts";
 import { deepLog, pickRandom } from "./helpers.ts";
 
-function assert(clause: boolean, context: unknown) {
+function assert<T>(clause: boolean, context: T): T {
     if (!clause) {
         console.error("Assertion error", context);
         throw -1;
     }
     console.info("Assertion success");
+    return context;
 }
 
-function assert_ok(opts: { status: number }) {
+function assert_ok<T extends { status: number }>(opts: T): T {
     assert(opts.status === 200, opts);
+    return opts;
 }
 
 function assert_boolean_return(opts: { status: number, data: backend.BooleanReturn, context?: unknown}) {
@@ -40,14 +42,14 @@ async function main() {
     }));
     assert_ok(voterCredentials);
 
-    let presidentHeaders = { headers: new Headers({
+    let presidentHeaders = { headers: {
         Authorization: `Bearer ${presidentCredentials.data.jwtToken}`,
-    })} ;
+    }} ;
 
     deepLog({ voterCredentials });
-    let voterHeaders = { headers: new Headers({
+    let voterHeaders = { headers: {
         Authorization: `Bearer ${voterCredentials.data.jwtToken}`,
-    })};
+    }};
 
     let openState = await backend.putTableOpen(presidentHeaders);
 
@@ -72,9 +74,6 @@ async function main() {
         assert_ok(availableElections);
 
         for (const election of availableElections.data.items) {
-            console.log("Getting headers");
-            assert_ok(await backend.getAuthJWT(voterHeaders));
-            console.log("Could get headers");
             const voteResult = await backend.postCitizenVote({ items: [
                 {
                     ballotId: pickRandom(election.allowedBallots)!.ballotId,
@@ -83,7 +82,6 @@ async function main() {
             ]}, voterHeaders);
 
             assert_boolean_return({ ...voteResult, context: voterCredentials.data.jwtToken });
-            console.log("Voted");
         }
     }
 

@@ -8,9 +8,7 @@ import { SessionStorage } from "./sessionStorageService";
 class VoterService {
   private getHeaders() {
     return {
-      headers: new Headers({
-        Authorization: `Bearer ${voterAuth.getSessionData()?.jwtToken}`,
-      }),
+      headers: voterAuth.getAuthHeaders(),
     };
   }
 
@@ -52,10 +50,16 @@ class VoterService {
   }
 
   public async getOpenElections() {
-    const user = voterAuth.getSessionData()?.circuit.building.zone.locality.department.departmentId;
+    const user = voterAuth.getSessionData();
+
+    if (user === null) {
+        throw "User not logged in.";
+    }
+
     const result = await backend.getElections({
+      "AvailableForCircuit.CircuitNumber": user.circuit.circuitId.circuitNumber,
+      "AvailableForCircuit.EstablishmentId": user.circuit.circuitId.establishmentId,
       OnlyOpenOrClosed: "Open",
-      DepartmentId: user,
     }, this.getHeaders());
 
     return this.handleStatus(result);
