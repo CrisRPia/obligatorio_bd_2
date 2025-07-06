@@ -86,11 +86,14 @@ async function main() {
     }
 
     let closeResult = await backend.putTableClose(presidentHeaders);
+    assert_ok(closeResult);
 
-    assert_ok(closeResult);
-    let electionResult = await backend.postElectionsResult([response.data.electionId])
-    assert_ok(closeResult);
-    deepLog({ electionResult });
+    let electionResult = await backend.postElectionsResult(presidentHeaders)
+    assert_ok(electionResult);
+
+    deepLog({ electionResult })
+    deepLog({ presidentCredentials })
+    console.log(JSON.stringify(presidentCredentials.data));
 }
 
 main();

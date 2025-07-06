@@ -172,7 +172,10 @@ CREATE TABLE IF NOT EXISTS citizen_assigned_int_polling_district_election
 CREATE TABLE IF NOT EXISTS vote
 (
     vote_id BINARY(16) PRIMARY KEY,
-    state   ENUM ('valid', 'out_of_district', 'approved_out_of_district') not null
+    state   ENUM ('valid', 'out_of_district', 'approved_out_of_district') not null,
+    polling_district_number INT        NOT NULL,
+    establishment_id        BINARY(16) NOT NULL,
+    foreign key (polling_district_number, establishment_id) REFERENCES polling_district (polling_district_number, establishment_id)
 );
 
 CREATE TABLE IF NOT EXISTS ballot

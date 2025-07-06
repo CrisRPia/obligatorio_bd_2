@@ -44,7 +44,7 @@ public record VoteService
         });
     }
 
-    private static (Ulid rowId, MySqlBatchCommand command) CreateVote(bool isObserved)
+    private (Ulid rowId, MySqlBatchCommand command) CreateVote(bool isObserved)
     {
         var command = new MySqlBatchCommand(QueriesSql.InsertVoteSql);
         var id = Ulid.NewUlid();
@@ -52,6 +52,8 @@ public record VoteService
         command.Parameters.AddFromObject(
             new QueriesSql.InsertVoteArgs
             {
+                EstablishmentId = CircuitId.EstablishmentId.ToByteArray(),
+                PollingDistrictNumber = CircuitId.CircuitNumber,
                 State = isObserved ? VoteState.Valid : VoteState.OutOfDistrict,
                 VoteId = id.ToByteArray(),
             }

@@ -143,6 +143,8 @@ public class Vote
 {
     public required byte[] VoteId { get; init; }
     public required VoteState State { get; init; }
+    public required int PollingDistrictNumber { get; init; }
+    public required byte[] EstablishmentId { get; init; }
 };
 
 public class Ballot

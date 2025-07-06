@@ -199,12 +199,14 @@ public partial class QueriesSql
     }
 
     public const string InsertVoteSql =
-        "INSERT INTO  vote ( vote_id , state ) VALUES ( @vote_id, @state ); SELECT  LAST_INSERT_ID ( ) ";
+        "INSERT INTO  vote ( vote_id , state, polling_district_number, establishment_id ) VALUES ( @vote_id, @state, @polling_district_number, @establishment_id ); SELECT  LAST_INSERT_ID ( ) ";
 
     public partial class InsertVoteArgs
     {
         public required byte[] VoteId { get; init; }
         public required VoteState State { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
     };
 
     public async Task InsertVote(InsertVoteArgs args)
@@ -214,6 +216,8 @@ public partial class QueriesSql
             var queryParams = new Dictionary<string, object?>();
             queryParams.Add("vote_id", args.VoteId);
             queryParams.Add("state", args.State.ToEnumString());
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            queryParams.Add("establishment_id", args.EstablishmentId);
             await connection.ExecuteAsync(InsertVoteSql, queryParams);
         }
     }
@@ -840,7 +844,7 @@ public partial class QueriesSql
     }
 
     public const string GetMunicipalElectionResultSql =
-        "with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.list_ballot_id, lb.list_number from  vote_contains_ballot  vcb  join  ballot  b  on  b . ballot_id  =  vcb . ballot_id  join  list_ballot  lb  on  lb . list_ballot_id  =  b . ballot_id  join  election_allows_ballots  eab  on  lb . list_ballot_id  =  eab . ballot_id  and  eab . election_id  in  ( /*SLICE:elections*/ @elections ) join  election  e  on  eab . election_id  =  e . election_id  group  by  lb . list_ballot_id , lb . list_number, e . election_id ) select  amount_of_votes, election_id, list_ballot_id, list_number from  votes_per_ballot  order  by  election_id , amount_of_votes desc ; SELECT  LAST_INSERT_ID ( ) ";
+        "with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.list_ballot_id, lb.list_number from  vote  v  join  vote_contains_ballot  vcb  on  v . vote_id  =  vcb . vote_id  join  ballot  b  on  b . ballot_id  =  vcb . ballot_id  join  list_ballot  lb  on  lb . list_ballot_id  =  b . ballot_id  join  election_allows_ballots  eab  on  lb . list_ballot_id  =  eab . ballot_id  join  election  e  on  eab . election_id  =  e . election_id  where  v . polling_district_number  =  @polling_district_number  and  v . establishment_id  =  @establishment_id  group  by  lb . list_ballot_id , lb . list_number, e . election_id ) select  amount_of_votes, election_id, list_ballot_id, list_number from  votes_per_ballot  order  by  election_id , amount_of_votes desc ; SELECT  LAST_INSERT_ID ( ) ";
 
     public partial class GetMunicipalElectionResultRow
     {
@@ -852,7 +856,8 @@ public partial class QueriesSql
 
     public partial class GetMunicipalElectionResultArgs
     {
-        public required byte[][] Elections { get; init; }
+        public required int PollingDistrictNumber { get; init; }
+        public required byte[] EstablishmentId { get; init; }
     };
 
     public async Task<List<GetMunicipalElectionResultRow>> GetMunicipalElectionResult(
@@ -861,17 +866,11 @@ public partial class QueriesSql
     {
         using (var connection = new MySqlConnection(ConnectionString))
         {
-            var transformedSql = GetMunicipalElectionResultSql;
-            transformedSql = Utils.TransformQueryForSliceArgs(
-                transformedSql,
-                args.Elections.Length,
-                "elections"
-            );
             var queryParams = new Dictionary<string, object?>();
-            for (int i = 0; i < args.Elections.Length; i++)
-                queryParams.Add($"@electionsArg{i}", args.Elections[i]);
+            queryParams.Add("polling_district_number", args.PollingDistrictNumber);
+            queryParams.Add("establishment_id", args.EstablishmentId);
             var result = await connection.QueryAsync<GetMunicipalElectionResultRow>(
-                transformedSql,
+                GetMunicipalElectionResultSql,
                 queryParams
             );
             return result.AsList();

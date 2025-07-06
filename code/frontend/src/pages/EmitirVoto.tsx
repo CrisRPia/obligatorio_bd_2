@@ -76,7 +76,7 @@ const EmitirVoto: React.FC = () => {
                                             onChange={() => handleSeleccion(elec.electionId, ballot)}
                                             className="w-4 h-4 text-[#0038A8] border-gray-300 focus:ring-[#0038A8]"
                                         />
-                                        <span className="ml-3 text-gray-700">{"Lista " + ballot.listNumber + ballot.isYes}</span>
+                                        <span className="ml-3 text-gray-700">{"Lista " + ballot.listNumber}</span>
                                     </label>
                                 </li>
                             ))}

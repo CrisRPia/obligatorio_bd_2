@@ -52,8 +52,8 @@ WHERE c.credencial_civica = ?
 
 -- name: InsertVote :exec
 INSERT
-INTO vote (vote_id, state)
-VALUES (?, ?);
+INTO vote (vote_id, state, polling_district_number, establishment_id)
+VALUES (?, ?, ?, ?);
 
 -- name: InsertBallot :exec
 INSERT
@@ -199,16 +199,15 @@ values (?, ?);
 
 -- name: GetMunicipalElectionResult :many
 with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.*
-                          from vote_contains_ballot vcb
+                          from vote v
+                                   join vote_contains_ballot vcb on v.vote_id = vcb.vote_id
                                    join ballot b on b.ballot_id = vcb.ballot_id
                                    join list_ballot lb on lb.list_ballot_id = b.ballot_id
-                                   join election_allows_ballots eab on lb.list_ballot_id = eab.ballot_id and
-                                                                       eab.election_id in (sqlc.slice(elections))
+                                   join election_allows_ballots eab on lb.list_ballot_id = eab.ballot_id
                                    join election e on eab.election_id = e.election_id
+                          where v.polling_district_number = ?
+                            and v.establishment_id = ?
                           group by lb.list_ballot_id, lb.list_number, e.election_id)
 select *
 from votes_per_ballot
 order by election_id, amount_of_votes desc;
-
-select *
-from vote_contains_ballot;
