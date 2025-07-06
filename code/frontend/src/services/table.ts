@@ -73,9 +73,8 @@ class TableService {
     return this.handleBooleanReturn(result);
   }
 
-  public async getReport(elections: string[]) {
-    // TODO
-    const result = await backend.postElectionsResult(elections, this.headers());
+  public async getCircuitsReport() {
+    const result = await backend.postElectionsResult(this.headers());
     return this.handleStatus(result)?.data.items;
   }
 }

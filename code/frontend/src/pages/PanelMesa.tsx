@@ -47,7 +47,7 @@ const PanelMesa: React.FC = () => {
   const handleCloseTable = async () => {
     const result = await table.close();
     if (result?.data?.success) {
-      navigate("/meas/reportes");
+      navigate("/mesa/reportes");
     }
   };
 

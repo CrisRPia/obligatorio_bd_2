@@ -783,6 +783,9 @@ export const getElections = async (
   } as getElectionsResponse;
 };
 
+/**
+ * @summary  (Secured - Roles: BoardPresident)
+ */
 export type postElectionsResultResponse200 = {
   data: ElectionResultListModel;
   status: 200;
@@ -801,14 +804,11 @@ export const getPostElectionsResultUrl = () => {
 };
 
 export const postElectionsResult = async (
-  postElectionsResultBody: string[],
   options?: RequestInit,
 ): Promise<postElectionsResultResponse> => {
   const res = await fetch(getPostElectionsResultUrl(), {
     ...options,
     method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(postElectionsResultBody),
   });
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();

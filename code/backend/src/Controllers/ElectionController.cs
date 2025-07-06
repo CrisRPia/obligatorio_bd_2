@@ -2,13 +2,14 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using backend.src.Models;
 using backend.src.Queries;
+using backend.src.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.src.Controllers;
 
 [ApiController]
 [Route("elections/")]
-public class ElectionController : Controller
+public class ElectionController(IJwtService jwt) : Controller
 {
     [HttpGet]
     [Route("")]
@@ -16,7 +17,8 @@ public class ElectionController : Controller
     {
         // Get elections
         IEnumerable<Queries.Codegen.QueriesSql.GetElectionsRow> result =
-            await DB.Queries.GetElections(new() {
+            await DB.Queries.GetElections(new()
+            {
                 EstablishmentId = filters.AvailableForCircuit.EstablishmentId.ToByteArray(),
                 PollingDistrictNumber = filters.AvailableForCircuit.CircuitNumber,
             });
@@ -85,11 +87,18 @@ public class ElectionController : Controller
     }
 
     [HttpPost]
+    [SafeAuthorize([Role.BoardPresident])]
     [Route("result")]
-    public async Task<ListModel<ElectionResult?>> GetElectionResult(IReadOnlyList<Ulid> electionIds)
+    public async Task<ListModel<ElectionResult?>> GetElectionResult()
     {
+        var data = jwt.GetData(HttpContext)!;
+
         var result = await DB.Queries.GetMunicipalElectionResult(
-            new() { Elections = electionIds.Select(e => e.ToByteArray()).ToArray() }
+            new()
+            {
+                EstablishmentId = data.CircuitId!.EstablishmentId.ToByteArray(),
+                PollingDistrictNumber = data.CircuitId.CircuitNumber
+            }
         );
 
         var elections = result.GroupBy(row => new Ulid(row.ElectionId));
