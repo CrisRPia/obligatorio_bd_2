@@ -30,6 +30,11 @@ class Auth<TUserType extends SupportedUser> {
         this.loginType = loginType;
     }
 
+    public getAuthHeaders() {
+        const token = this.getSessionData()?.jwtToken;
+        return { Authorization: `Bearer ${token}` }
+    }
+
     public async logIn(opts: AuthArgs<TUserType>): Promise<AuthData<TUserType> | undefined> {
         const { data, headers, status } = await authMethodMap[this.loginType](opts);
 

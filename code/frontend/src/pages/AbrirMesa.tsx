@@ -3,9 +3,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AbrirMesa: React.FC = () => {
+    const navigate = useNavigate();
     const handleAbrirMesa = async () => {
         await table.open();
-        await useNavigate()('/mesa/panel');
+        await navigate('/mesa/panel');
     };
 
     return (

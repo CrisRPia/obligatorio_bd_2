@@ -6,9 +6,7 @@ import type { Response } from "./api";
 class TableService {
   private headers() {
     return {
-      headers: new Headers({
-        Authorization: `Bearer ${boardPresidentAuth.getSessionData()?.jwtToken}`,
-      }),
+      headers: boardPresidentAuth.getAuthHeaders(),
     };
   }
 
@@ -73,6 +71,12 @@ class TableService {
       this.headers(),
     );
     return this.handleBooleanReturn(result);
+  }
+
+  public async getReport(elections: string[]) {
+    // TODO
+    const result = await backend.postElectionsResult(elections, this.headers());
+    return this.handleStatus(result)?.data.items;
   }
 }
 

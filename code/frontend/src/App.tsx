@@ -24,7 +24,9 @@ const useAuth = () => {
   );
   return {
     isAuthenticated: datas.some((data) => !!data?.jwtToken),
-    userTypes: Array.from(new Set(datas.map((data) => data?.roles).flat())),
+    userTypes: Array.from(new Set(datas.flatMap((data) => data?.roles))).filter(
+      (role) => !!role,
+    ),
   };
 };
 
@@ -33,6 +35,7 @@ const ProtectedRoute: React.FC<{
   children: React.ReactNode;
   allowedUserTypes?: Role[];
 }> = ({ children, allowedUserTypes }) => {
+  allowedUserTypes ??= [];
   const { isAuthenticated, userTypes } = useAuth();
 
   // Si no está autenticado, redirige al login
@@ -42,10 +45,10 @@ const ProtectedRoute: React.FC<{
 
   // Si se especifican tipos de usuario permitidos y el usuario no coincide, redirige a no autorizado
   if (
-    allowedUserTypes &&
-    userTypes &&
-    userTypes.some((userType) => !allowedUserTypes.includes(userType!))
+    allowedUserTypes.length !== 0 &&
+    !userTypes.some((userType) => allowedUserTypes.includes(userType!))
   ) {
+    console.log("Redirecting to login.", { allowedUserTypes, userTypes });
     return <Navigate to="/unauthorized" replace />;
   }
 

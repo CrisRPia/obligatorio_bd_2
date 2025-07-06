@@ -12,7 +12,7 @@ namespace backend.src.Controllers;
 [ApiController]
 [Debug]
 [Route("debug/")]
-public class DebugController(IFakeService fake, ICitizenService citizen, IJwtService jwtService)
+public class DebugController(IFakeService fake, ICitizenService citizen)
     : Controller
 {
     private static int ListNumber { get; set; } = 420;

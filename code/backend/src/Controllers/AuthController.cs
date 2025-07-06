@@ -1,9 +1,6 @@
-using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using backend.src.Models;
-using backend.src.Queries;
 using backend.src.Services;
-using Isopoh.Cryptography.Argon2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.src.Controllers;
@@ -27,7 +24,7 @@ public class AuthController(IJwtService jwt, IAuthService authService) : Control
         var token = jwt.GenerateJwtToken(
             new()
             {
-                Username = "Votante",
+                Username = $"{result.User.Name} {result.User.Surname}",
                 UserId = result.User.CitizenId,
                 Roles = [Role.Voter],
                 TokenId = null,
@@ -82,3 +79,4 @@ public record AuthResponse<T>
     [Required]
     public required Circuit Circuit { get; set; }
 }
+

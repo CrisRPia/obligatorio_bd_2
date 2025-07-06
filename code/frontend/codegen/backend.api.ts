@@ -37,10 +37,17 @@ export interface BaseCitizen {
   uruguayanId: number;
 }
 
+/**
+ * @nullable
+ */
+export type BooleanReturnContext = unknown | null;
+
 export interface BooleanReturn {
   success: boolean;
   /** @nullable */
   message?: string | null;
+  /** @nullable */
+  context?: BooleanReturnContext;
 }
 
 export interface BooleanReturnAuthResponse {
@@ -261,17 +268,14 @@ export type GetDebugFakeCitizensParams = {
 };
 
 export type GetElectionsParams = {
-  MinimumDateTime?: string;
-  MaximumDateTime?: string;
   DepartmentId?: string;
   OnlyOpenOrClosed?: ElectionState;
+  "AvailableForCircuit.CircuitNumber": number;
+  "AvailableForCircuit.EstablishmentId": string;
   /**
    * Do not specify (or empty) to set to all.
    */
   RestrictToTypes?: ElectionType[];
-  SearchTerm?: string;
-  HasResults?: boolean;
-  AvailableForUser?: string;
 };
 
 export type PostTableCitizenIdAuthorizeParams = {
@@ -383,6 +387,9 @@ export const postAuthTable = async (
   } as postAuthTableResponse;
 };
 
+/**
+ * @summary  (Secured - Roles: Voter)
+ */
 export type postCitizenVoteResponse200 = {
   data: BooleanReturn;
   status: 200;
@@ -741,7 +748,7 @@ export type getElectionsResponse = getElectionsResponseComposite & {
   headers: Headers;
 };
 
-export const getGetElectionsUrl = (params?: GetElectionsParams) => {
+export const getGetElectionsUrl = (params: GetElectionsParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -758,7 +765,7 @@ export const getGetElectionsUrl = (params?: GetElectionsParams) => {
 };
 
 export const getElections = async (
-  params?: GetElectionsParams,
+  params: GetElectionsParams,
   options?: RequestInit,
 ): Promise<getElectionsResponse> => {
   const res = await fetch(getGetElectionsUrl(params), {
