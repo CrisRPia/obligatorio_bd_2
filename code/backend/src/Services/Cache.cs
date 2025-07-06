@@ -10,17 +10,21 @@ public interface ICitizenCacheService
     void EnableCitizen(CitizenData citizenData, CircuitId circuitId);
     CitizenData? GetCircuitsApprovedCitizen(CircuitId circuitId);
     CircuitId? GetCitizenCircuit(Ulid citizenId);
+    void MarkVote(Ulid citizenId);
+    bool HasVoted(Ulid citizenId);
 }
 
 public class CitizenCacheService : ICitizenCacheService
 {
-    private object Lock { get; init; } = new();
+    private readonly Lock _enableCitizenLock = new(); 
+    
     private readonly ConcurrentDictionary<CircuitId, CitizenData> _circuitToCitizenCache = new();
     private readonly ConcurrentDictionary<Ulid, CircuitId> _citizenToCircuitCache = new();
+    private readonly ConcurrentDictionary<Ulid, bool> _alreadyVotedCitizens = new();
 
     public void EnableCitizen(CitizenData citizenData, CircuitId circuitId)
     {
-        lock (Lock)
+        lock (_enableCitizenLock)
         {
             if (_citizenToCircuitCache.TryGetValue(citizenData.id, out var oldCircuitId))
             {
@@ -34,13 +38,21 @@ public class CitizenCacheService : ICitizenCacheService
 
     public void DisableCitizen(Ulid citizenId)
     {
-        lock (Lock)
+        if (_citizenToCircuitCache.TryRemove(citizenId, out var circuitId))
         {
-            if (_citizenToCircuitCache.TryRemove(citizenId, out var circuitId))
-            {
-                _circuitToCitizenCache.TryRemove(circuitId, out _);
-            }
+            _circuitToCitizenCache.TryRemove(circuitId, out _);
         }
+    }
+    
+    public void MarkVote(Ulid citizenId) 
+    {
+        _alreadyVotedCitizens.TryAdd(citizenId, true);
+        DisableCitizen(citizenId);
+    }
+    
+    public bool HasVoted(Ulid citizenId) 
+    {
+        return _alreadyVotedCitizens.ContainsKey(citizenId);
     }
 
     public CircuitId? GetCitizenCircuit(Ulid citizenId)
@@ -50,6 +62,6 @@ public class CitizenCacheService : ICitizenCacheService
 
     public CitizenData? GetCircuitsApprovedCitizen(CircuitId circuitId)
     {
-        return _circuitToCitizenCache.TryGetValue(circuitId, out var citizenId) ? citizenId : null;
+        return _circuitToCitizenCache.TryGetValue(circuitId, out var citizenData) ? citizenData : null;
     }
 }

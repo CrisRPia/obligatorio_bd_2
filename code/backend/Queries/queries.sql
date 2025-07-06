@@ -205,7 +205,8 @@ with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.
                                    join list_ballot lb on lb.list_ballot_id = b.ballot_id
                                    join election_allows_ballots eab on lb.list_ballot_id = eab.ballot_id
                                    join election e on eab.election_id = e.election_id
-                          where v.polling_district_number = ? and v.establishment_id = ?
+                          where v.polling_district_number = ?
+                            and v.establishment_id = ?
                           group by lb.list_ballot_id, lb.list_number, e.election_id)
 select *
 from votes_per_ballot

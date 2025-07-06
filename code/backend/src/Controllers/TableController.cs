@@ -19,6 +19,12 @@ public class TableController(ICitizenCacheService CitizenCache, IJwtService jwtS
             return BooleanReturn.False;
         }
 
+        var citizenAssignedCircuit = CitizenCache.GetCitizenCircuit(citizenId);
+
+        if (citizenAssignedCircuit is not null) {
+            return new() { Success = false, Message = "Citizen already assigned to a circuit." };
+        }
+
         CitizenCache.EnableCitizen((citizenId, authorizeObserved), circuitId);
 
         return new() { Success = CitizenCache.GetCitizenCircuit(citizenId) is not null };

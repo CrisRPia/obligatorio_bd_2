@@ -71,6 +71,7 @@ public class CitizenController(ICitizenCacheService CitizenCache, IJwtService jw
             throw;
         }
 
+        CitizenCache.MarkVote(citizenId);
         return BooleanReturn.True;
     }
 
