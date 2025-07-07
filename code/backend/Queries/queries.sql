@@ -198,16 +198,53 @@ insert into municipal (election_id, locality_id)
 values (?, ?);
 
 -- name: GetMunicipalElectionResult :many
-with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.*
-                          from vote v
-                                   join vote_contains_ballot vcb on v.vote_id = vcb.vote_id
-                                   join ballot b on b.ballot_id = vcb.ballot_id
-                                   join list_ballot lb on lb.list_ballot_id = b.ballot_id
-                                   join election_allows_ballots eab on lb.list_ballot_id = eab.ballot_id
-                                   join election e on eab.election_id = e.election_id
-                          where v.polling_district_number = ?
-                            and v.establishment_id = ?
-                          group by lb.list_ballot_id, lb.list_number, e.election_id)
-select *
-from votes_per_ballot
-order by election_id, amount_of_votes desc;
+    -- name: GetBallotResults :many
+SELECT
+    e.description AS election_name,
+    lb.list_number,
+    bpl.party_name,
+    bv.vote_count,
+    cl.candidate_list,
+    bpl.party_headquarters
+FROM
+    (
+        -- Subquery 1: Replaces the BallotVotes CTE
+        SELECT
+            vcb.ballot_id,
+            COUNT(*) AS vote_count
+        FROM vote v
+        JOIN vote_contains_ballot vcb ON v.vote_id = vcb.vote_id
+        WHERE v.polling_district_number = 1 AND v.establishment_id = $2
+        GROUP BY vcb.ballot_id
+    ) AS bv
+JOIN
+    list_ballot lb ON bv.ballot_id = lb.list_ballot_id
+JOIN
+    election_allows_ballots eab ON lb.list_ballot_id = eab.ballot_id
+JOIN
+    election e ON eab.election_id = e.election_id
+JOIN
+    (
+        -- Subquery 2: Replaces the CandidateLists CTE
+        SELECT
+            lbhc.list_ballot_id,
+            STRING_AGG(CONCAT(c.name, ' ', c.surname), ', ' ORDER BY lbhc.index_in_list) AS candidate_list
+        FROM list_ballot_has_candidate lbhc
+        JOIN citizen c ON lbhc.candidate_id = c.citizen_id
+        GROUP BY lbhc.list_ballot_id
+    ) AS cl ON lb.list_ballot_id = cl.list_ballot_id
+LEFT JOIN
+    (
+        -- Subquery 3: Replaces the BallotPartyLink CTE
+        SELECT
+            lbhc.list_ballot_id,
+            p.name AS party_name,
+            p.hedquarters_adress AS party_headquarters
+        FROM list_ballot_has_candidate lbhc
+        JOIN party_has_citizen phc ON lbhc.candidate_id = phc.citizen_id
+        JOIN party p ON phc.party_id = p.party_id
+        WHERE lbhc.org = 'main_candidate'
+    ) AS bpl ON lb.list_ballot_id = bpl.list_ballot_id
+ORDER BY
+    e.election_id,
+    bv.vote_count DESC;

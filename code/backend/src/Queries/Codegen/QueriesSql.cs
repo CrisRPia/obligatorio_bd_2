@@ -844,14 +844,19 @@ public partial class QueriesSql
     }
 
     public const string GetMunicipalElectionResultSql =
-        "with votes_per_ballot as (select count(*) as amount_of_votes, e.election_id, lb.list_ballot_id, lb.list_number from  vote  v  join  vote_contains_ballot  vcb  on  v . vote_id  =  vcb . vote_id  join  ballot  b  on  b . ballot_id  =  vcb . ballot_id  join  list_ballot  lb  on  lb . list_ballot_id  =  b . ballot_id  join  election_allows_ballots  eab  on  lb . list_ballot_id  =  eab . ballot_id  join  election  e  on  eab . election_id  =  e . election_id  where  v . polling_district_number  =  @polling_district_number  and  v . establishment_id  =  @establishment_id  group  by  lb . list_ballot_id , lb . list_number, e . election_id ) select  amount_of_votes, election_id, list_ballot_id, list_number from  votes_per_ballot  order  by  election_id , amount_of_votes desc ; SELECT  LAST_INSERT_ID ( ) ";
+        "SELECT e . election_id , e . description, lb . list_number, lb . list_ballot_id, bpl . party_name, bpl . hedquarters_adress, bpl . party_id, bv . vote_count, cl . candidate_list  FROM ( SELECT  vcb . ballot_id, COUNT (* ) AS  vote_count  FROM  vote  v  JOIN  vote_contains_ballot  vcb  ON  v . vote_id  =  vcb . vote_id  WHERE  v . polling_district_number  =  @polling_district_number  AND  v . establishment_id  =  @establishment_id  GROUP  BY  vcb . ballot_id ) AS  bv  JOIN  list_ballot  lb  ON  bv . ballot_id  =  lb . list_ballot_id  JOIN  election_allows_ballots  eab  ON  lb . list_ballot_id  =  eab . ballot_id  JOIN  election  e  ON  eab . election_id  =  e . election_id  JOIN ( SELECT  lbhc . list_ballot_id, GROUP_CONCAT (CONCAT(c.name, ' ', c.surname)ORDER BY lbhc.index_in_list SEPARATOR ',' ) AS  candidate_list  FROM  list_ballot_has_candidate  lbhc  JOIN  citizen  c  ON  lbhc . candidate_id  =  c . citizen_id  GROUP  BY  lbhc . list_ballot_id ) AS  cl  ON  lb . list_ballot_id  =  cl . list_ballot_id  LEFT  JOIN ( SELECT  lbhc . list_ballot_id, p . name  AS  party_name, p . party_id, p . hedquarters_adress  FROM  list_ballot_has_candidate  lbhc  JOIN  party_has_citizen  phc  ON  lbhc . candidate_id  =  phc . citizen_id  JOIN  party  p  ON  phc . party_id  =  p . party_id  WHERE  lbhc . org  =  'main_candidate' ) AS  bpl  ON  lb . list_ballot_id  =  bpl . list_ballot_id  ORDER  BY  e . election_id, bv . vote_count  DESC; SELECT  LAST_INSERT_ID ( ) ";
 
     public partial class GetMunicipalElectionResultRow
     {
-        public required long AmountOfVotes { get; init; }
         public required byte[] ElectionId { get; init; }
-        public required byte[] ListBallotId { get; init; }
+        public required string Description { get; init; }
         public required int ListNumber { get; init; }
+        public required byte[] ListBallotId { get; init; }
+        public string? PartyName { get; init; }
+        public string? HedquartersAdress { get; init; }
+        public required byte[] PartyId { get; init; }
+        public required long VoteCount { get; init; }
+        public string? CandidateList { get; init; }
     };
 
     public partial class GetMunicipalElectionResultArgs

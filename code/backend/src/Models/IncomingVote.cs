@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using backend.src.Attributes;
 
@@ -6,7 +5,7 @@ namespace backend.src.Models;
 
 public record Ballots : ListModel<Ballot>
 {
-    [Required, CredencialCivicaAttribute]
+    [Required, CredencialCivica]
     public required string VoterCredencialCivica;
 }
 
@@ -25,9 +24,11 @@ public record Ballot
     [Required]
     public required Ulid BallotId { get; init; }
 
-    [Description($"Specify if vote type is {nameof(BallotType.List)}.")]
     public int? ListNumber { get; init; }
 
-    [Description($"Specify if vote type is {nameof(BallotType.Boolean)}.")]
+    public string[] ListCandidateNames { get; init; } = [];
+
+    public SimplifiedParty? Party { get; init; }
+
     public bool? IsYes { get; init; }
 }

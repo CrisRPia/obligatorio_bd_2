@@ -111,13 +111,19 @@ public class ElectionController(IJwtService jwt) : Controller
                     return new ElectionResult()
                     {
                         Type = ElectionType.MunicipalElection,
-                        TotalVotes = (int)group.Select(row => row.AmountOfVotes).Sum(),
+                        TotalVotes = (int)group.Select(row => row.VoteCount).Sum(),
                         ListBasedResult = group
                             .Select(row => new VoteResult<Ballot>()
                             {
-                                VoteCount = (int)row.AmountOfVotes,
+                                VoteCount = (int)row.VoteCount,
                                 Vote = new()
                                 {
+                                    ListCandidateNames = row.CandidateList!.Split(","),
+                                    Party = new() {
+                                        HeadquartersAddress = row.HedquartersAdress!,
+                                        PartyId = new Ulid(row.PartyId),
+                                        Name = row.Description
+                                    },
                                     ListNumber = row.ListNumber,
                                     BallotId = new Ulid(row.ListBallotId),
                                     ElectionId = new Ulid(row.ElectionId),
