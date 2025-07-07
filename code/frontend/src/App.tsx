@@ -69,7 +69,7 @@ const App: React.FC = () => {
         <Route
           path="/votar"
           element={
-            <ProtectedRoute allowedUserTypes={["Voter"]}>
+            <ProtectedRoute allowedUserTypes={["Voter", "BoardPresident"]}>
               <EmitirVoto />
             </ProtectedRoute>
           }
@@ -77,12 +77,7 @@ const App: React.FC = () => {
 
         {/* --- Rutas para Presidentes de Mesa --- */}
         {/* Ruta de Login */}
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? <Navigate to="/mesa/abrir" replace /> : <Login />
-          }
-        />
+        <Route path="/login" element={<Login />}/>
 
         {/* Abrir Mesa */}
         <Route
