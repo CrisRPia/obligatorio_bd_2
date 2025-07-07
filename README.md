@@ -13,7 +13,7 @@ los datos de [el archivo ejemplo](./code/.env.example.ucu).
 
 ### Cómo ejecutar
 
-1. Ir a la carpeta de código:
+1. Ir a la [carpeta de código](./code/):
 
 ```bash
 cd code
@@ -57,4 +57,9 @@ que le sea útil guardar esta información para utilizar durante sus tests.
 Particularmente, deberá iniciar sesión con el presidente de mesa de la primera
 tabla. (Haga búsqueda textual de `president`)
 
-Por último, la contrasña de todos los usuarios falsos es `pato1234`.
+### Tips
+
+- La contrasña de todos los usuarios falsos es `pato1234`.
+- Cuando reinicia el estado de la base de datos, borre el `session storage` en
+    su buscador, ya que usted seguirá teniendo un token antiguo (y válido para
+    una presona que ya no existe). Puede hacerlo reiniciando su buscador.
