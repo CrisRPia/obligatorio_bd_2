@@ -48,6 +48,8 @@ const EmitirVoto: React.FC = () => {
             return;
         }
 
+        setSelecciones(new Map());
+
         toast("El voto ha sido enviado.");
     };
 
