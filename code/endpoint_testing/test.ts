@@ -92,6 +92,7 @@ async function main() {
     assert_ok(electionResult);
 
     deepLog({ electionResult })
+    deepLog({ electionResult })
     deepLog({ presidentCredentials })
     console.log(JSON.stringify(presidentCredentials.data));
 }
