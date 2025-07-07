@@ -12,6 +12,7 @@ import { table } from "@/services/table";
 import type { ElectionResult } from "@codegen/backend.api";
 import { toast } from "@/services/toast";
 import { boardPresidentAuth } from "@/services/auth";
+import { translateElection } from "@/services/translator";
 
 // registramos los componentes de chart.js
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -34,7 +35,7 @@ const ElectionComponent = (result: ProcessedElectionResult) => {
     return (<><div className="space-y-8">
         <div className="bg-gray-50 rounded-lg shadow-inner p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Resumen de Votación
+                {translateElection(result.source.type)}: Resumen de Votación 
             </h2>
             <div className="space-y-3">
                 <p className="flex justify-between border-b pb-2">
