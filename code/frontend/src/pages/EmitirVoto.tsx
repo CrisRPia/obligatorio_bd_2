@@ -1,4 +1,5 @@
 import { toast } from "@/services/toast";
+import { translateElection } from "@/services/translator";
 import { voter } from "@/services/voter";
 import type { Ballot, Department, Election } from "@codegen/backend.api";
 import React, { useEffect, useState } from "react";
@@ -64,7 +65,7 @@ const EmitirVoto: React.FC = () => {
                 <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">🗳️ Emitir Voto</h1>
                 {elecciones.map(elec => (
                     <div key={elec.electionId} className="card mb-6">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-4">{[elec.type, departments.find(d => d.departmentId === elec.departmentId)?.name].filter(Boolean).join(" - ")}</h2>
+                        <h2 className="text-xl font-semibold text-gray-800 mb-4">{[translateElection(elec.type), departments.find(d => d.departmentId === elec.departmentId)?.name].filter(Boolean).join(" - ")}</h2>
                         <ul className="space-y-3">
                             {elec.allowedBallots.map(ballot => (
                                 <li key={ballot.ballotId} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
