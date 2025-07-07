@@ -14,6 +14,7 @@ import { toast } from "@/services/toast";
 import { boardPresidentAuth } from "@/services/auth";
 import { translateElection } from "@/services/translator";
 
+
 // registramos los componentes de chart.js
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -32,70 +33,74 @@ type ProcessedElectionResult = {
 };
 
 const ElectionComponent = (result: ProcessedElectionResult) => {
-    return (<><div className="space-y-8">
-        <div className="bg-gray-50 rounded-lg shadow-inner p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                {translateElection(result.source.type)}: Resumen de Votación 
-            </h2>
-            <div className="space-y-3">
-                <p className="flex justify-between border-b pb-2">
-                    <span className="text-gray-600 font-bold">
-                        Total de Votos:
-                    </span>
-                    <span className="font-medium">{result.source.totalVotes}</span>
-                </p>
-                <p className="flex justify-between border-b pb-2">
-                    <span className="text-gray-600">Votos Regulares:</span>
-                    <span className="font-medium">{result.source.totalVotes}</span>
-                </p>
-                <p className="flex justify-between">
-                    <span className="text-gray-600">Votos Observados:</span>
-                    <span className="font-medium">0</span>
-                </p>
+    return (
+        <div className="grid md:grid-cols-2 gap-8 items-start mb-8">
+            <div className="space-y-8">
+                <div className="bg-gray-50 rounded-lg shadow-inner p-6">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                        {translateElection(result.source.type)}: Resumen de Votación 
+                    </h2>
+                    <div className="space-y-3">
+                        <p className="flex justify-between border-b pb-2">
+                            <span className="text-gray-600 font-bold">
+                                Total de Votos:
+                            </span>
+                            <span className="font-medium">{result.source.totalVotes}</span>
+                        </p>
+                        <p className="flex justify-between border-b pb-2">
+                            <span className="text-gray-600">Votos Regulares:</span>
+                            <span className="font-medium">{result.source.totalVotes}</span>
+                        </p>
+                        <p className="flex justify-between">
+                            <span className="text-gray-600">Votos Observados:</span>
+                            <span className="font-medium">0</span>
+                        </p>
+                    </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg shadow-inner p-6">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                        Votos por Lista
+                    </h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="border-b-2 border-gray-300">
+                                <tr>
+                                    <th className="py-2 px-4 font-semibold text-gray-700">
+                                        Lista / Ballot
+                                    </th>
+                                    <th className="py-2 px-4 font-semibold text-gray-700 text-right">
+                                        Votos
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {result.source.listBasedResult?.map(res => {
+                                    return <tr
+                                        key={res.vote.listNumber}
+                                        className="border-b border-gray-200 hover:bg-gray-100"
+                                    >
+                                        <td className="py-3 px-4 text-gray-800">{"Lista " + res.vote.listNumber}</td>
+                                        <td className="py-3 px-4 font-medium text-gray-900 text-right">
+                                            {res.voteCount}
+                                        </td>
+                                    </tr>
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg shadow-inner p-6 flex flex-col items-center justify-center">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    Distribución de Votos
+                </h2>
+                <div className="w-full max-w-sm">
+                    <Pie data={result.chartData as any} options={result.chartOptions as any} />
+                </div>
             </div>
         </div>
-
-        <div className="bg-gray-50 rounded-lg shadow-inner p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Votos por Lista
-            </h2>
-            <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead className="border-b-2 border-gray-300">
-                        <tr>
-                            <th className="py-2 px-4 font-semibold text-gray-700">
-                                Lista / Ballot
-                            </th>
-                            <th className="py-2 px-4 font-semibold text-gray-700 text-right">
-                                Votos
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {result.source.listBasedResult?.map(res => {
-                            return <tr
-                                key={res.vote.listNumber}
-                                className="border-b border-gray-200 hover:bg-gray-100"
-                            >
-                                <td className="py-3 px-4 text-gray-800">{"Lista " + res.vote.listNumber}</td>
-                                <td className="py-3 px-4 font-medium text-gray-900 text-right">
-                                    {res.voteCount}
-                                </td>
-                            </tr>
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div><div className="bg-gray-50 rounded-lg shadow-inner p-6 flex flex-col items-center justify-center">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Distribución de Votos
-            </h2>
-            <div className="w-full max-w-sm">
-                <Pie data={result.chartData as any} options={result.chartOptions as any} />
-            </div>
-        </div></>
-        );
+    );
 };
 
 const Reportes: React.FC = () => {
@@ -170,8 +175,6 @@ const Reportes: React.FC = () => {
                     </h1>
                 </div>
                 {processedData?.map(ElectionComponent)}
-                <div className="grid md:grid-cols-2 gap-8 items-start">
-                </div>
             </div>
         </div>
     );
